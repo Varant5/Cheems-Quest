@@ -1,4 +1,4 @@
-package com.example.CheemsQuest;
+package com.cheemsquest;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
