@@ -28,9 +28,9 @@ public final class ConsoleGame {
     }
 
     private static final List<SkillOption> PLAYER_SKILLS = List.of(
-            new SkillOption(new Bonk(), "pewny cios, czasem krytyk"),
-            new SkillOption(new Bite(), "mocne gryzienie, ale łatwo chybić"),
-            new SkillOption(new BonkingSpin(), "słabszy obrót, trafia wszystkich"));
+            new SkillOption(new Bonk(), "reliable hit, sometimes crits"),
+            new SkillOption(new Bite(), "strong bite, but easy to miss"),
+            new SkillOption(new BonkingSpin(), "weaker spin, hits everyone"));
 
     private final Scanner in;
     private final PrintStream out;
@@ -48,7 +48,7 @@ public final class ConsoleGame {
 
     void run() {
         out.println("=== CHEEMS QUEST ===");
-        out.println("Dziki Karen Doge i Mały Doge Sąsiada blokują ścieżkę!");
+        out.println("A Wild Karen Doge and the Neighbor's Lil Doge block the path!");
 
         Battle battle = createBattle();
         try {
@@ -57,22 +57,22 @@ public final class ConsoleGame {
             }
         } catch (EndOfInput e) {
             out.println();
-            out.println("Cheems ucieka z walki. Do zobaczenia!");
+            out.println("Cheems runs away from the fight. See you later!");
             return;
         }
 
         out.println();
         if (battle.getStatus() == BattleStatus.VICTORY) {
-            out.println("ZWYCIĘSTWO! Cheems zdobywa much respekt.");
+            out.println("VICTORY! Cheems earns much respect.");
         } else {
-            out.println("PORAŻKA. Cheems idzie spać do budy...");
+            out.println("DEFEAT. Cheems crawls back to the doghouse...");
         }
     }
 
     private Battle createBattle() {
         Combatant cheems = new Combatant("Cheems", new Stats(65, 14, 3));
-        Combatant karen = new Combatant("Dziki Karen Doge", new Stats(35, 9, 2));
-        Combatant smallDoge = new Combatant("Mały Doge Sąsiada", new Stats(20, 6, 0));
+        Combatant karen = new Combatant("Wild Karen Doge", new Stats(35, 9, 2));
+        Combatant smallDoge = new Combatant("Neighbor's Lil Doge", new Stats(20, 6, 0));
 
         EnemyAi ai = new WeightedEnemyAi(WeightedTable.<Skill>builder()
                 .add(new Bonk(), 3)
@@ -96,14 +96,14 @@ public final class ConsoleGame {
     private void printStatus(Battle battle) {
         out.println();
         out.println(battle.getPlayer());
-        out.println("Wrogowie:");
+        out.println("Enemies:");
         battle.getEnemies().stream()
                 .filter(Combatant::isAlive)
                 .forEach(enemy -> out.println("  " + enemy));
     }
 
     private Skill chooseSkill() {
-        out.println("Wybierz atak:");
+        out.println("Choose your attack:");
         for (int i = 0; i < PLAYER_SKILLS.size(); i++) {
             SkillOption option = PLAYER_SKILLS.get(i);
             out.printf("  %d) %s - %s%n", i + 1, option.skill().name(), option.description());
@@ -119,7 +119,7 @@ public final class ConsoleGame {
         if (living.size() == 1) {
             return living.getFirst();
         }
-        out.println("Kogo bonkujesz?");
+        out.println("Who do you bonk?");
         for (int i = 0; i < living.size(); i++) {
             out.printf("  %d) %s%n", i + 1, living.get(i));
         }
@@ -141,21 +141,21 @@ public final class ConsoleGame {
             } catch (NumberFormatException ignored) {
                 // fall through to the retry message
             }
-            out.printf("Much confuse. Wybierz liczbę od 1 do %d.%n", max);
+            out.printf("Much confuse. Pick a number from 1 to %d.%n", max);
         }
     }
 
     private void narrate(SkillResult result) {
-        out.println(result.user().getName() + " używa " + result.skillName() + "!");
+        out.println(result.user().getName() + " uses " + result.skillName() + "!");
         for (Hit hit : result.hits()) {
             String target = hit.target().getName();
             switch (hit.outcome()) {
-                case MISS -> out.println("  " + target + " unika ataku. Such dodge.");
-                case CRITICAL -> out.println("  KRYTYK! " + target + " traci " + hit.damage() + " HP.");
-                case HIT -> out.println("  " + target + " traci " + hit.damage() + " HP.");
+                case MISS -> out.println("  " + target + " dodges. Such dodge.");
+                case CRITICAL -> out.println("  CRITICAL! " + target + " loses " + hit.damage() + " HP.");
+                case HIT -> out.println("  " + target + " loses " + hit.damage() + " HP.");
             }
             if (hit.damage() > 0 && !hit.target().isAlive()) {
-                out.println("  " + target + " pada!");
+                out.println("  " + target + " is down!");
             }
         }
     }

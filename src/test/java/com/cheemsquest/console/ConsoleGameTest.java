@@ -36,9 +36,9 @@ class ConsoleGameTest {
                 """);
 
         assertThat(output)
-                .contains("Mały Doge Sąsiada pada!")
-                .contains("Dziki Karen Doge pada!")
-                .contains("ZWYCIĘSTWO!");
+                .contains("Neighbor's Lil Doge is down!")
+                .contains("Wild Karen Doge is down!")
+                .contains("VICTORY!");
     }
 
     @Test
@@ -50,12 +50,12 @@ class ConsoleGameTest {
                 2
                 """);
 
-        assertThat(output).contains("Much confuse. Wybierz liczbę od 1 do 3.");
-        assertThat(output).contains("Mały Doge Sąsiada traci 14 HP.");
+        assertThat(output).contains("Much confuse. Pick a number from 1 to 3.");
+        assertThat(output).contains("Neighbor's Lil Doge loses 14 HP.");
     }
 
     @Test
     void endOfInputExitsGracefully() {
-        assertThat(play("")).contains("Cheems ucieka z walki");
+        assertThat(play("")).contains("Cheems runs away from the fight");
     }
 }
