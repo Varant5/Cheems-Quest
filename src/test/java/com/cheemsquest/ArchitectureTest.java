@@ -6,6 +6,7 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 
 @AnalyzeClasses(packages = "com.cheemsquest", importOptions = ImportOption.DoNotIncludeTests.class)
 class ArchitectureTest {
@@ -22,4 +23,17 @@ class ArchitectureTest {
             .should().onlyDependOnClassesThat().resideInAnyPackage(
                     "java..", "com.cheemsquest.engine..", "com.cheemsquest.console..")
             .because("the console client is a thin adapter over the engine");
+
+    @ArchTest
+    static final ArchRule layersRespectDirection = layeredArchitecture()
+            .consideringOnlyDependenciesInLayers()
+            .layer("Api").definedBy("com.cheemsquest.api..")
+            .layer("Domain").definedBy("com.cheemsquest.domain..")
+            .layer("Persistence").definedBy("com.cheemsquest.persistence..")
+            .layer("Engine").definedBy("com.cheemsquest.engine..")
+            .layer("Console").definedBy("com.cheemsquest.console..")
+            .whereLayer("Api").mayNotBeAccessedByAnyLayer()
+            .whereLayer("Console").mayNotBeAccessedByAnyLayer()
+            .whereLayer("Domain").mayOnlyBeAccessedByLayers("Api")
+            .whereLayer("Persistence").mayOnlyBeAccessedByLayers("Domain");
 }
