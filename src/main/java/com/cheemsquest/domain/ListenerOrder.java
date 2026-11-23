@@ -4,6 +4,7 @@ final class ListenerOrder {
 
     static final int EXPERIENCE = 1;
     static final int LOOT = 2;
+    static final int QUEST = 3;
 
     private ListenerOrder() {
     }

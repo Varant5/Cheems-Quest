@@ -3,6 +3,7 @@ package com.cheemsquest.domain;
 import com.cheemsquest.TestRandomConfiguration;
 import com.cheemsquest.TestRandomConfiguration.SettableRandom;
 import com.cheemsquest.TestcontainersConfiguration;
+import com.cheemsquest.engine.quest.QuestStatus;
 import com.cheemsquest.persistence.GameCharacter;
 import com.cheemsquest.persistence.GameCharacterRepository;
 import com.cheemsquest.persistence.InventorySlot;
@@ -34,6 +35,9 @@ class EnemyDefeatedEventTest {
 
     @Autowired
     private SettableRandom rng;
+
+    @Autowired
+    private QuestService questService;
 
     private UUID characterId;
 
@@ -81,6 +85,49 @@ class EnemyDefeatedEventTest {
         InventorySlot wig = cheems().getInventory().getLast();
         assertThat(wig.getItem().getCode()).isEqualTo("KARENS_WIG");
         assertThat(wig.isEquipped()).isFalse();
+    }
+
+    @Test
+    void bonkingThreeKarensCompletesTheQuestAndGrantsRewards() {
+        questService.accept(characterId, "KAREN_PROBLEMS");
+        defeat("KAREN_DOGE", "Wild Karen Doge", 20);
+        GameLog second = defeat("KAREN_DOGE", "Wild Karen Doge", 20);
+
+        GameLog third = defeat("KAREN_DOGE", "Wild Karen Doge", 20);
+
+        assertThat(second.lines()).contains("Quest progress: Karen Problems 2/3.");
+        assertThat(third.lines()).containsExactly(
+                "Cheems gains 20 EXP.",
+                "LEVEL UP! Cheems is now level 2. Much stronger!",
+                "Quest progress: Karen Problems 3/3.",
+                "QUEST COMPLETE! Karen Problems. Much hero. Very reward.",
+                "Cheems gains 60 EXP.",
+                "Cheems receives Stonks Helmet (EPIC).");
+        assertThat(cheems().getExperience()).isEqualTo(120);
+        assertThat(cheems().getInventory()).extracting(slot -> slot.getItem().getCode()).contains("STONKS_HELMET");
+        assertThat(questService.list(characterId)).singleElement()
+                .satisfies(quest -> assertThat(quest.status()).isEqualTo(QuestStatus.COMPLETED));
+
+        GameLog fourth = defeat("KAREN_DOGE", "Wild Karen Doge", 20);
+        assertThat(fourth.lines()).containsExactly("Cheems gains 20 EXP.");
+    }
+
+    @Test
+    void otherEnemiesDoNotCountTowardsTheQuest() {
+        questService.accept(characterId, "KAREN_PROBLEMS");
+
+        GameLog log = defeat("LIL_DOGE", "Neighbor's Lil Doge", 8);
+
+        assertThat(log.lines()).containsExactly("Cheems gains 8 EXP.");
+        assertThat(questService.list(characterId).getFirst().kills()).isZero();
+    }
+
+    @Test
+    void questsDoNotProgressBeforeBeingAccepted() {
+        GameLog log = defeat("KAREN_DOGE", "Wild Karen Doge", 20);
+
+        assertThat(log.lines()).containsExactly("Cheems gains 20 EXP.");
+        assertThat(questService.list(characterId).getFirst().status()).isEqualTo(QuestStatus.AVAILABLE);
     }
 
     @Test

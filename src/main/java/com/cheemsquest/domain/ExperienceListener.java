@@ -19,12 +19,6 @@ class ExperienceListener {
         GameCharacter character = characters.findById(event.characterId())
                 .orElseThrow(() -> new NotFoundException("Character " + event.characterId() + " not found"));
 
-        int levelsGained = character.gainExperience(event.expReward());
-
-        event.log().add(character.getName() + " gains " + event.expReward() + " EXP.");
-        if (levelsGained > 0) {
-            event.log().add("LEVEL UP! " + character.getName() + " is now level " + character.getLevel()
-                    + ". Much stronger!");
-        }
+        Rewards.grantExperience(character, event.expReward(), event.log());
     }
 }
