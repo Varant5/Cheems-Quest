@@ -80,4 +80,20 @@ public class GameCharacter {
     public void moveTo(Location destination) {
         this.location = destination;
     }
+
+    public void updateHp(int hp) {
+        if (hp < 0 || hp > maxHp) {
+            throw new IllegalArgumentException("hp must be in [0, " + maxHp + "], got " + hp);
+        }
+        this.currentHp = hp;
+    }
+
+    public void restoreHp() {
+        this.currentHp = maxHp;
+    }
+
+    public void respawnAt(Location home) {
+        moveTo(home);
+        restoreHp();
+    }
 }

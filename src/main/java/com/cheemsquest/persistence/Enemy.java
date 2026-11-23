@@ -7,6 +7,7 @@ import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -43,6 +44,7 @@ public class Enemy {
 
     @ElementCollection
     @CollectionTable(name = "enemy_skill", joinColumns = @JoinColumn(name = "enemy_code"))
+    @OrderBy("weight DESC")
     private List<EnemySkill> skills = new ArrayList<>();
 
     public Stats stats() {

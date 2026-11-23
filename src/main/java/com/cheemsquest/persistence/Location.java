@@ -12,6 +12,7 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.MapKeyColumn;
 import jakarta.persistence.MapKeyEnumerated;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -54,9 +55,14 @@ public class Location {
 
     @ElementCollection
     @CollectionTable(name = "location_spawn", joinColumns = @JoinColumn(name = "location_code"))
+    @OrderBy("weight DESC")
     private List<SpawnEntry> spawns = new ArrayList<>();
 
     public Optional<Location> exit(Direction direction) {
         return Optional.ofNullable(exits.get(direction));
+    }
+
+    public boolean isSafe() {
+        return encounterChance == 0.0 || spawns.isEmpty();
     }
 }
