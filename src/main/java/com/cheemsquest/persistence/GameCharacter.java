@@ -1,7 +1,10 @@
 package com.cheemsquest.persistence;
 
+import com.cheemsquest.engine.item.EquipmentSlot;
+import com.cheemsquest.engine.model.StatBonus;
 import com.cheemsquest.engine.model.Stats;
 import com.cheemsquest.engine.progression.Progression;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -10,12 +13,17 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 // Not named "Character" to avoid clashing with java.lang.Character.
@@ -42,14 +50,17 @@ public class GameCharacter {
     @Column(nullable = false)
     private int experience;
 
+    @Getter(AccessLevel.NONE)
     @Column(name = "max_hp", nullable = false)
-    private int maxHp;
+    private int baseMaxHp;
 
-    @Column(nullable = false)
-    private int attack;
+    @Getter(AccessLevel.NONE)
+    @Column(name = "attack", nullable = false)
+    private int baseAttack;
 
-    @Column(nullable = false)
-    private int defense;
+    @Getter(AccessLevel.NONE)
+    @Column(name = "defense", nullable = false)
+    private int baseDefense;
 
     @Column(name = "current_hp", nullable = false)
     private int currentHp;
@@ -61,21 +72,67 @@ public class GameCharacter {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
+    @Getter(AccessLevel.NONE)
+    @OneToMany(mappedBy = "character", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("acquiredAt")
+    private List<InventorySlot> inventory = new ArrayList<>();
+
     public GameCharacter(Player player, String name, Stats stats, Location startLocation) {
         this.player = player;
         this.name = name;
         this.level = 1;
         this.experience = 0;
-        this.maxHp = stats.maxHp();
-        this.attack = stats.attack();
-        this.defense = stats.defense();
+        this.baseMaxHp = stats.maxHp();
+        this.baseAttack = stats.attack();
+        this.baseDefense = stats.defense();
         this.currentHp = stats.maxHp();
         this.location = startLocation;
         this.createdAt = Instant.now();
     }
 
+    public Stats baseStats() {
+        return new Stats(baseMaxHp, baseAttack, baseDefense);
+    }
+
+    public StatBonus equipmentBonus() {
+        return inventory.stream()
+                .filter(InventorySlot::isEquipped)
+                .map(slot -> slot.getItem().bonus())
+                .reduce(StatBonus.NONE, StatBonus::plus);
+    }
+
     public Stats stats() {
-        return new Stats(maxHp, attack, defense);
+        return baseStats().plus(equipmentBonus());
+    }
+
+    public List<InventorySlot> getInventory() {
+        return List.copyOf(inventory);
+    }
+
+    public Optional<InventorySlot> inventorySlot(UUID slotId) {
+        return inventory.stream().filter(slot -> slotId.equals(slot.getId())).findFirst();
+    }
+
+    public InventorySlot addItem(Item item) {
+        InventorySlot slot = new InventorySlot(this, item);
+        inventory.add(slot);
+        return slot;
+    }
+
+    public void equip(InventorySlot slot) {
+        requireOwned(slot);
+        EquipmentSlot target = slot.getItem().getSlot();
+        inventory.stream()
+                .filter(other -> other != slot && other.isEquipped() && other.getItem().getSlot() == target)
+                .forEach(InventorySlot::unequip);
+        slot.equip();
+        clampHp();
+    }
+
+    public void unequip(InventorySlot slot) {
+        requireOwned(slot);
+        slot.unequip();
+        clampHp();
     }
 
     public void moveTo(Location destination) {
@@ -83,6 +140,7 @@ public class GameCharacter {
     }
 
     public void updateHp(int hp) {
+        int maxHp = stats().maxHp();
         if (hp < 0 || hp > maxHp) {
             throw new IllegalArgumentException("hp must be in [0, " + maxHp + "], got " + hp);
         }
@@ -90,7 +148,7 @@ public class GameCharacter {
     }
 
     public void restoreHp() {
-        this.currentHp = maxHp;
+        this.currentHp = stats().maxHp();
     }
 
     public void respawnAt(Location home) {
@@ -108,10 +166,10 @@ public class GameCharacter {
 
         int levelsGained = level - previousLevel;
         if (levelsGained > 0) {
-            Stats grown = stats().plus(Progression.LEVEL_UP_BONUS.times(levelsGained));
-            maxHp = grown.maxHp();
-            attack = grown.attack();
-            defense = grown.defense();
+            Stats grown = baseStats().plus(Progression.LEVEL_UP_BONUS.times(levelsGained));
+            baseMaxHp = grown.maxHp();
+            baseAttack = grown.attack();
+            baseDefense = grown.defense();
             restoreHp();
         }
         return levelsGained;
@@ -119,5 +177,15 @@ public class GameCharacter {
 
     public int experienceForNextLevel() {
         return Progression.experienceForLevel(level + 1);
+    }
+
+    private void clampHp() {
+        currentHp = Math.min(currentHp, stats().maxHp());
+    }
+
+    private void requireOwned(InventorySlot slot) {
+        if (!inventory.contains(slot)) {
+            throw new IllegalArgumentException("item " + slot.getId() + " does not belong to " + name);
+        }
     }
 }

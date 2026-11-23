@@ -101,24 +101,24 @@ class EncounterApiTest {
         rng.set(0.5);
         move("EAST");
 
-        // Bonk: 14 - 2 = 12. Karen's Bonk: 9 - 3 = 6.
+        // Cheems has 14 + 2 (Very Stick) attack. Bonk: 16 - 2 = 14. Karen's Bonk: 9 - 3 = 6.
         act("BONK")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("PLAYER_TURN"))
                 .andExpect(jsonPath("$.log", contains(
                         "Cheems uses Bonk!",
-                        "Wild Karen Doge loses 12 HP.",
+                        "Wild Karen Doge loses 14 HP.",
                         "Wild Karen Doge uses Bonk!",
                         "Cheems loses 6 HP.")))
                 .andExpect(jsonPath("$.hp").value(59))
-                .andExpect(jsonPath("$.encounter.enemies[0].hp").value(23));
-
-        // Bite: round(14 * 1.6) - 2 = 20.
-        act("BITE")
-                .andExpect(jsonPath("$.hp").value(53))
-                .andExpect(jsonPath("$.encounter.enemies[0].hp").value(3));
+                .andExpect(jsonPath("$.encounter.enemies[0].hp").value(21));
 
         act("BONK")
+                .andExpect(jsonPath("$.hp").value(53))
+                .andExpect(jsonPath("$.encounter.enemies[0].hp").value(7));
+
+        // Bite: round(16 * 1.6) - 2 = 24.
+        act("BITE")
                 .andExpect(jsonPath("$.status").value("VICTORY"))
                 .andExpect(jsonPath("$.log", hasItem("Wild Karen Doge is down!")))
                 .andExpect(jsonPath("$.log", hasItem(containsString("VICTORY!"))))
@@ -138,8 +138,8 @@ class EncounterApiTest {
         rng.set(0.5);
         move("EAST");
         act("BONK");
-        act("BITE");
         act("BONK");
+        act("BITE");
 
         move("WEST")
                 .andExpect(status().isOk())

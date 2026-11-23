@@ -93,7 +93,7 @@ public class EncounterService {
         }
         log.addAll(rewards.lines());
 
-        return new ActionView(log, round.status(), character.getCurrentHp(), character.getMaxHp(),
+        return new ActionView(log, round.status(), character.getCurrentHp(), character.stats().maxHp(),
                 EncounterView.from(encounter));
     }
 

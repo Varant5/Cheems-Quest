@@ -37,7 +37,7 @@ class EnemyDefeatedEventTest {
         GameCharacter cheems = characters.findById(created.id()).orElseThrow();
         assertThat(cheems.getLevel()).isEqualTo(3);
         assertThat(cheems.getExperience()).isEqualTo(160);
-        assertThat(cheems.getMaxHp()).isEqualTo(81);
+        assertThat(cheems.stats().maxHp()).isEqualTo(81);
         assertThat(log.lines()).containsExactly(
                 "Cheems gains 160 EXP.",
                 "LEVEL UP! Cheems is now level 3. Much stronger!");

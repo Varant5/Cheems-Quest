@@ -1,5 +1,6 @@
 package com.cheemsquest.domain;
 
+import com.cheemsquest.engine.model.Stats;
 import com.cheemsquest.persistence.GameCharacter;
 
 import java.util.UUID;
@@ -17,6 +18,7 @@ public record CharacterView(
         LocationView location) {
 
     static CharacterView from(GameCharacter character) {
+        Stats stats = character.stats();
         return new CharacterView(
                 character.getId(),
                 character.getName(),
@@ -24,9 +26,9 @@ public record CharacterView(
                 character.getExperience(),
                 character.experienceForNextLevel(),
                 character.getCurrentHp(),
-                character.getMaxHp(),
-                character.getAttack(),
-                character.getDefense(),
+                stats.maxHp(),
+                stats.attack(),
+                stats.defense(),
                 LocationView.from(character.getLocation()));
     }
 }
