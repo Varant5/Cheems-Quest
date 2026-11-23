@@ -1,6 +1,9 @@
 package com.cheemsquest.api;
 
+import com.cheemsquest.TestRandomConfiguration;
+import com.cheemsquest.TestRandomConfiguration.SettableRandom;
 import com.cheemsquest.TestcontainersConfiguration;
+import org.junit.jupiter.api.BeforeEach;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,11 +27,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, TestRandomConfiguration.class})
 class CharacterApiTest {
 
     @Autowired
     private MockMvc mvc;
+
+    @Autowired
+    private SettableRandom rng;
+
+    @BeforeEach
+    void resetRandom() {
+        rng.reset();
+    }
 
     private ResultActions postJson(String url, String body) throws Exception {
         return mvc.perform(post(url).contentType(MediaType.APPLICATION_JSON).content(body));

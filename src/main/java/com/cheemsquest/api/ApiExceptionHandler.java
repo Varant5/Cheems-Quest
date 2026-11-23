@@ -2,6 +2,7 @@ package com.cheemsquest.api;
 
 import com.cheemsquest.domain.GameRuleException;
 import com.cheemsquest.domain.NotFoundException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -28,6 +29,11 @@ class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(GameRuleException.class)
     ProblemDetail handleGameRule(GameRuleException e) {
         return problem(HttpStatus.CONFLICT, "Not allowed", e.getMessage());
+    }
+
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    ProblemDetail handleConcurrentUpdate(OptimisticLockingFailureException e) {
+        return problem(HttpStatus.CONFLICT, "Concurrent update", "Such hurry. Another action got there first, try again.");
     }
 
     @Override
