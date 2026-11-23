@@ -21,6 +21,7 @@ import com.cheemsquest.persistence.Location;
 import com.cheemsquest.persistence.LocationRepository;
 import com.cheemsquest.persistence.SpawnEntry;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +41,7 @@ public class EncounterService {
     private final GameCharacterRepository characters;
     private final LocationRepository locations;
     private final RandomGenerator rng;
+    private final ApplicationEventPublisher events;
 
     @Transactional(readOnly = true)
     public EncounterView current(UUID characterId) {
@@ -57,6 +59,7 @@ public class EncounterService {
 
         Combatant player = new Combatant(character.getName(), character.stats(), character.getCurrentHp());
         List<Combatant> foes = encounter.getEnemies().stream().map(EncounterService::toCombatant).toList();
+        List<Integer> hpBefore = encounter.getEnemies().stream().map(EncounterEnemy::getCurrentHp).toList();
         Battle battle = new Battle(player, foes, aiFor(encounter, foes), rng);
 
         RoundResult round = playRound(battle, skillType.skill(), foes, targetPosition);
@@ -79,6 +82,17 @@ public class EncounterService {
             case PLAYER_TURN, ENEMY_TURN -> {
             }
         }
+
+        GameLog rewards = new GameLog();
+        for (int i = 0; i < foes.size(); i++) {
+            if (hpBefore.get(i) > 0 && !foes.get(i).isAlive()) {
+                Enemy defeated = encounter.getEnemies().get(i).getEnemy();
+                events.publishEvent(new EnemyDefeatedEvent(
+                        characterId, defeated.getCode(), defeated.getName(), defeated.getExpReward(), rewards));
+            }
+        }
+        log.addAll(rewards.lines());
+
         return new ActionView(log, round.status(), character.getCurrentHp(), character.getMaxHp(),
                 EncounterView.from(encounter));
     }

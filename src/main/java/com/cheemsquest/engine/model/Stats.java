@@ -10,4 +10,8 @@ public record Stats(int maxHp, int attack, int defense) {
             throw new IllegalArgumentException("attack and defense cannot be negative");
         }
     }
+
+    public Stats plus(StatBonus bonus) {
+        return new Stats(maxHp + bonus.maxHp(), attack + bonus.attack(), defense + bonus.defense());
+    }
 }

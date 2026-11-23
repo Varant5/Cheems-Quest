@@ -122,10 +122,15 @@ class EncounterApiTest {
                 .andExpect(jsonPath("$.status").value("VICTORY"))
                 .andExpect(jsonPath("$.log", hasItem("Wild Karen Doge is down!")))
                 .andExpect(jsonPath("$.log", hasItem(containsString("VICTORY!"))))
+                .andExpect(jsonPath("$.log[-1]").value("Cheems gains 20 EXP."))
                 .andExpect(jsonPath("$.hp").value(53));
 
         mvc.perform(get("/api/characters/{id}/encounter", id))
                 .andExpect(status().isNotFound());
+        mvc.perform(get("/api/characters/{id}", id))
+                .andExpect(jsonPath("$.level").value(1))
+                .andExpect(jsonPath("$.experience").value(20))
+                .andExpect(jsonPath("$.experienceForNextLevel").value(50));
     }
 
     @Test

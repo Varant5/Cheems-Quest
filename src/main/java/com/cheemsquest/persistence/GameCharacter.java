@@ -1,6 +1,7 @@
 package com.cheemsquest.persistence;
 
 import com.cheemsquest.engine.model.Stats;
+import com.cheemsquest.engine.progression.Progression;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -95,5 +96,28 @@ public class GameCharacter {
     public void respawnAt(Location home) {
         moveTo(home);
         restoreHp();
+    }
+
+    public int gainExperience(int amount) {
+        if (amount < 0) {
+            throw new IllegalArgumentException("experience gain cannot be negative, got " + amount);
+        }
+        int previousLevel = level;
+        experience += amount;
+        level = Progression.levelFor(experience);
+
+        int levelsGained = level - previousLevel;
+        if (levelsGained > 0) {
+            Stats grown = stats().plus(Progression.LEVEL_UP_BONUS.times(levelsGained));
+            maxHp = grown.maxHp();
+            attack = grown.attack();
+            defense = grown.defense();
+            restoreHp();
+        }
+        return levelsGained;
+    }
+
+    public int experienceForNextLevel() {
+        return Progression.experienceForLevel(level + 1);
     }
 }
