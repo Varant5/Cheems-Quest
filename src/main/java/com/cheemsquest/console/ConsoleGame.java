@@ -7,11 +7,11 @@ import com.cheemsquest.engine.combat.RoundResult;
 import com.cheemsquest.engine.combat.WeightedEnemyAi;
 import com.cheemsquest.engine.model.Combatant;
 import com.cheemsquest.engine.model.Stats;
+import com.cheemsquest.engine.narration.BattleNarrator;
 import com.cheemsquest.engine.random.WeightedTable;
 import com.cheemsquest.engine.skill.Bite;
 import com.cheemsquest.engine.skill.Bonk;
 import com.cheemsquest.engine.skill.BonkingSpin;
-import com.cheemsquest.engine.skill.Hit;
 import com.cheemsquest.engine.skill.Skill;
 import com.cheemsquest.engine.skill.SkillResult;
 import com.cheemsquest.engine.skill.Targeting;
@@ -146,18 +146,9 @@ public final class ConsoleGame {
     }
 
     private void narrate(SkillResult result) {
-        out.println(result.user().getName() + " uses " + result.skillName() + "!");
-        for (Hit hit : result.hits()) {
-            String target = hit.target().getName();
-            switch (hit.outcome()) {
-                case MISS -> out.println("  " + target + " dodges. Such dodge.");
-                case CRITICAL -> out.println("  CRITICAL! " + target + " loses " + hit.damage() + " HP.");
-                case HIT -> out.println("  " + target + " loses " + hit.damage() + " HP.");
-            }
-            if (hit.damage() > 0 && !hit.target().isAlive()) {
-                out.println("  " + target + " is down!");
-            }
-        }
+        List<String> lines = BattleNarrator.narrate(result);
+        out.println(lines.getFirst());
+        lines.stream().skip(1).forEach(line -> out.println("  " + line));
     }
 
     private static final class EndOfInput extends RuntimeException {
