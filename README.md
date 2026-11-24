@@ -189,8 +189,12 @@ Requirements: JDK 25 and Docker, which runs PostgreSQL for the app and Testconta
 
 ```bash
 ./mvnw spring-boot:run   # starts only the database container, then the app on :8080
-./mvnw verify            # unit, architecture and integration tests
+./mvnw verify            # unit, architecture and integration tests + coverage check
 ```
+
+`verify` writes a JaCoCo report to `target/site/jacoco/index.html` and fails the build when line coverage
+drops below 90% overall or below 95% lines / 85% branches in any `engine` package.
+CI shows the totals in the run summary and attaches the HTML report.
 
 The terminal client needs no database:
 

@@ -151,4 +151,20 @@ class BattleTest {
         assertThat(battle.getLog()).isEmpty();
         assertThat(karen.getHp()).isEqualTo(30);
     }
+
+    @Test
+    void cannotStartWithAFaintedPlayer() {
+        Combatant fainted = new Combatant("Cheems", new Stats(50, 20, 2), 0);
+
+        assertThatThrownBy(() -> battle(fainted, karen(30)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("player must be alive");
+    }
+
+    @Test
+    void cannotStartWithoutLivingEnemies() {
+        assertThatThrownBy(() -> battle(cheems, karen(0)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("at least one living enemy");
+    }
 }
