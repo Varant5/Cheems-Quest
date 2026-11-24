@@ -1,6 +1,7 @@
 package com.cheemsquest.api;
 
 import com.cheemsquest.domain.GameRuleException;
+import com.cheemsquest.domain.InvalidCredentialsException;
 import com.cheemsquest.domain.NotFoundException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpHeaders;
@@ -8,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -29,6 +31,16 @@ class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(GameRuleException.class)
     ProblemDetail handleGameRule(GameRuleException e) {
         return problem(HttpStatus.CONFLICT, "Not allowed", e.getMessage());
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    ProblemDetail handleInvalidCredentials(InvalidCredentialsException e) {
+        return problem(HttpStatus.UNAUTHORIZED, "Unauthorized", e.getMessage());
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    ProblemDetail handleAccessDenied(AccessDeniedException e) {
+        return problem(HttpStatus.FORBIDDEN, "Forbidden", "Paws off! This Cheems belongs to another player.");
     }
 
     @ExceptionHandler(OptimisticLockingFailureException.class)

@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ProblemDetail;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,6 +24,9 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/characters/{id}/encounter")
 @RequiredArgsConstructor
+@PreAuthorize(SecurityConfig.OWNS_CHARACTER)
+@ApiResponse(responseCode = "403", description = "The character belongs to another player",
+        content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class)))
 @Tag(name = "Encounters", description = "Turn-based fights. Such bonk.")
 class EncounterController {
 
