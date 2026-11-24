@@ -10,12 +10,15 @@ const KEY_DIRECTIONS = {
     ArrowRight: "EAST", d: "EAST"
 };
 const KEY_SKILLS = {1: "BONK", 2: "BITE", 3: "BONKING_SPIN"};
+const MAP_CELL = {width: 96, height: 50, gapX: 26, gapY: 22, padding: 4};
+const SVG_NS = "http://www.w3.org/2000/svg";
 
 const state = {
     token: null,
     username: null,
     authMode: "login",
     character: null,
+    map: null,
     encounter: null,
     target: null,
     busy: false
@@ -196,7 +199,7 @@ async function createCharacter(event) {
 }
 
 async function enterGame(id) {
-    const [character, inventory, quests, encounter] = await Promise.all([
+    const [character, inventory, quests, encounter, map] = await Promise.all([
         api("GET", `/characters/${id}`),
         api("GET", `/characters/${id}/inventory`),
         api("GET", `/characters/${id}/quests`),
@@ -205,9 +208,11 @@ async function enterGame(id) {
                 return null;
             }
             throw error;
-        })
+        }),
+        state.map ? Promise.resolve(state.map) : api("GET", "/world/map")
     ]);
     storage.set(CHARACTER_KEY, id);
+    state.map = map;
     state.character = character;
     $("#log").replaceChildren();
     show("game");
@@ -266,6 +271,100 @@ function renderLocation() {
     for (const button of document.querySelectorAll("#compass button")) {
         button.disabled = Boolean(state.encounter) || !location.exits.includes(button.dataset.dir);
     }
+    renderMap();
+}
+
+function svg(tag, attributes = {}, ...children) {
+    const node = document.createElementNS(SVG_NS, tag);
+    for (const [name, value] of Object.entries(attributes)) {
+        node.setAttribute(name, value);
+    }
+    node.append(...children);
+    return node;
+}
+
+function mapLabel(name) {
+    const words = name.split(" ");
+    if (name.length <= 12 || words.length < 2) {
+        return [name];
+    }
+    let best = 1;
+    for (let i = 1; i < words.length; i++) {
+        const diff = (a) => Math.abs(words.slice(0, a).join(" ").length - words.slice(a).join(" ").length);
+        if (diff(i) < diff(best)) {
+            best = i;
+        }
+    }
+    return [words.slice(0, best).join(" "), words.slice(best).join(" ")];
+}
+
+function renderMap() {
+    const map = state.map;
+    if (!map || !state.character) {
+        return;
+    }
+    const {width, height, gapX, gapY, padding} = MAP_CELL;
+    const here = state.character.location.code;
+    const current = map.locations.find((location) => location.code === here);
+    const walkable = new Map(state.encounter || !current
+        ? []
+        : Object.entries(current.exits).map(([direction, code]) => [code, direction]));
+    const byCode = new Map(map.locations.map((location) => [location.code, location]));
+    const center = (location) => ({
+        x: padding + location.x * (width + gapX) + width / 2,
+        y: padding + location.y * (height + gapY) + height / 2
+    });
+
+    const edges = [];
+    for (const location of map.locations) {
+        for (const code of Object.values(location.exits)) {
+            const target = byCode.get(code);
+            if (!target || location.code > code) {
+                continue;
+            }
+            const from = center(location);
+            const to = center(target);
+            const open = (location.code === here && walkable.has(code)) || (code === here && walkable.has(location.code));
+            edges.push(svg("line", {x1: from.x, y1: from.y, x2: to.x, y2: to.y, class: `edge${open ? " open" : ""}`}));
+        }
+    }
+
+    const nodes = map.locations.map((location) => {
+        const {x, y} = center(location);
+        const direction = walkable.get(location.code);
+        const classes = ["node"];
+        if (location.safe) classes.push("safe");
+        if (location.code === here) classes.push("current");
+        if (direction) classes.push("reachable");
+        const lines = mapLabel(location.name);
+        const text = svg("text", {x, y: y - (lines.length - 1) * 7},
+            ...lines.map((line, index) => svg("tspan", {x, dy: index === 0 ? 0 : 14}, line)));
+        const title = location.code === here
+            ? `${location.name} (you are here)`
+            : direction ? `Walk ${direction.toLowerCase()} to ${location.name}` : location.name;
+        const node = svg("g", {class: classes.join(" ")},
+            svg("title", {}, title),
+            svg("rect", {x: x - width / 2, y: y - height / 2, width, height, rx: 8}),
+            text);
+        if (direction) {
+            node.setAttribute("tabindex", "0");
+            node.setAttribute("role", "button");
+            node.addEventListener("click", () => move(direction));
+            node.addEventListener("keydown", (event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    move(direction);
+                }
+            });
+        }
+        return node;
+    });
+
+    const svgWidth = padding * 2 + map.width * (width + gapX) - gapX;
+    const svgHeight = padding * 2 + map.height * (height + gapY) - gapY;
+    const element = $("#map");
+    element.setAttribute("viewBox", `0 0 ${svgWidth} ${svgHeight}`);
+    element.replaceChildren(...edges, ...nodes);
 }
 
 function enemyNames(encounter) {

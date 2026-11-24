@@ -337,6 +337,106 @@ label {
     font-weight: 700;
 }
 
+.map {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin-top: 12px;
+}
+
+.map .edge {
+    stroke: var(--border);
+    stroke-width: 3;
+    stroke-linecap: round;
+}
+
+.map .edge.open {
+    stroke: var(--accent);
+    stroke-dasharray: 4 5;
+}
+
+.map .node rect {
+    fill: var(--panel-2);
+    stroke: var(--border);
+    stroke-width: 1.5;
+    transition: stroke-width 0.15s ease;
+}
+
+.map .node text {
+    fill: var(--muted);
+    font: 11px var(--font);
+    text-anchor: middle;
+    dominant-baseline: middle;
+    pointer-events: none;
+}
+
+.map .node.safe rect {
+    stroke: var(--good);
+}
+
+.map .node.reachable {
+    cursor: pointer;
+}
+
+.map .node.reachable rect {
+    stroke: var(--accent);
+    stroke-width: 2;
+}
+
+.map .node.reachable text {
+    fill: var(--text);
+}
+
+.map .node.reachable:hover rect, .map .node.reachable:focus-visible rect {
+    stroke-width: 3.5;
+}
+
+.map .node:focus {
+    outline: none;
+}
+
+.map .node.current rect {
+    fill: var(--accent);
+    stroke: var(--accent);
+}
+
+.map .node.current text {
+    fill: var(--accent-ink);
+    font-weight: 700;
+}
+
+.map-legend {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 6px 0 0;
+}
+
+.map-legend .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    border: 2px solid var(--border);
+    margin-left: 6px;
+}
+
+.map-legend .dot:first-child {
+    margin-left: 0;
+}
+
+.map-legend .dot.current {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.map-legend .dot.reachable {
+    border-color: var(--accent);
+}
+
+.map-legend .dot.safe {
+    border-color: var(--good);
+}
+
 .compass {
     display: grid;
     grid-template-columns: repeat(3, 48px);

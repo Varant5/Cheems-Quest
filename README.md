@@ -40,7 +40,7 @@ Requirements: Docker.
 docker compose up --build
 ```
 
-Open <http://localhost:8080>, register and play in the browser. Move with the compass or `WASD` / arrow keys,
+Open <http://localhost:8080>, register and play in the browser. Move by clicking the map, with the compass or `WASD` / arrow keys,
 fight with `1` `2` `3`, click an enemy to target it.
 
 Prefer raw HTTP? Swagger UI lives at <http://localhost:8080/swagger-ui.html>: register, click **Authorize**,
@@ -88,6 +88,7 @@ curl -s -X POST localhost:8080/api/characters/$ID/encounter/action \
 |---|---|---|
 | POST | `/api/auth/register` | Create an account, returns a JWT |
 | POST | `/api/auth/login` | Exchange credentials for a JWT |
+| GET | `/api/world/map` | All locations on a grid with their exits |
 | GET | `/api/characters` | List my characters |
 | POST | `/api/characters` | Create a character |
 | GET | `/api/characters/{id}` | Stats and current location |
@@ -141,6 +142,8 @@ The layers are enforced by [ArchUnit tests](src/test/java/com/cheemsquest/Archit
   grant EXP, roll loot and count quest kills, so adding a new reward type does not touch combat code.
 - **Reusable weighted tables.** One `WeightedTable` drives enemy AI, encounter spawns and loot drops.
 - **Data-driven world.** Locations, exits, enemies, items, loot and quests are seeded by Flyway migrations.
+  The map has no stored coordinates: `WorldLayout` walks the exits from home and places every location on a grid,
+  rejecting worlds whose exits overlap or do not fit.
 - **Ownership checks.** `@PreAuthorize` on every character endpoint asks the domain whether the character belongs
   to the player from the token.
 
