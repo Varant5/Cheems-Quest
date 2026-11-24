@@ -622,6 +622,22 @@ kbd {
     font-size: 12px;
 }
 
+.item .actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 4px;
+}
+
+.item .quantity {
+    color: var(--muted);
+    font-weight: 400;
+}
+
+.stats .gold {
+    color: var(--legendary);
+}
+
 .rarity-COMMON { color: var(--common); }
 .rarity-RARE { color: var(--rare); }
 .rarity-EPIC { color: var(--epic); }

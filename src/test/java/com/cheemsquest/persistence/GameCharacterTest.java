@@ -12,11 +12,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class GameCharacterTest {
 
     private static final Item STICK = new Item("VERY_STICK", "Very Stick", "", EquipmentSlot.WEAPON, Rarity.COMMON,
-            new StatBonus(0, 2, 0));
+            new StatBonus(0, 2, 0), 2);
     private static final Item BONE = new Item("LEGENDARY_BONE", "Legendary Bone", "", EquipmentSlot.WEAPON,
-            Rarity.LEGENDARY, new StatBonus(0, 8, 0));
+            Rarity.LEGENDARY, new StatBonus(0, 8, 0), 150);
     private static final Item HELMET = new Item("STONKS_HELMET", "Stonks Helmet", "", EquipmentSlot.HEAD, Rarity.EPIC,
-            new StatBonus(10, 0, 3));
+            new StatBonus(10, 0, 3), 40);
 
     private final GameCharacter cheems = new GameCharacter(null, "Cheems", new Stats(65, 14, 3), null);
 
@@ -109,5 +109,35 @@ class GameCharacterTest {
         InventorySlot dogesStick = doge.addItem(STICK);
 
         assertThatThrownBy(() -> cheems.equip(dogesStick)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void sellingRemovesUnequippedCopiesAndPaysGold() {
+        InventorySlot worn = cheems.addItem(STICK);
+        cheems.equip(worn);
+        cheems.addItem(STICK);
+        cheems.addItem(STICK);
+        cheems.addItem(HELMET);
+
+        int earned = cheems.sell("VERY_STICK", 2);
+
+        assertThat(earned).isEqualTo(4);
+        assertThat(cheems.getGold()).isEqualTo(4);
+        assertThat(cheems.getInventory()).first().isSameAs(worn);
+        assertThat(cheems.getInventory()).extracting(slot -> slot.getItem().getCode())
+                .containsExactly("VERY_STICK", "STONKS_HELMET");
+        assertThat(cheems.stats().attack()).isEqualTo(16);
+    }
+
+    @Test
+    void cannotSellEquippedOrMissingCopies() {
+        cheems.equip(cheems.addItem(STICK));
+        cheems.addItem(STICK);
+
+        assertThatThrownBy(() -> cheems.sell("VERY_STICK", 2)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> cheems.sell("VERY_STICK", 0)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> cheems.sell("LEGENDARY_BONE", 1)).isInstanceOf(IllegalArgumentException.class);
+        assertThat(cheems.getInventory()).hasSize(2);
+        assertThat(cheems.getGold()).isZero();
     }
 }

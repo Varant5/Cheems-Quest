@@ -65,6 +65,9 @@ public class GameCharacter {
     @Column(name = "current_hp", nullable = false)
     private int currentHp;
 
+    @Column(nullable = false)
+    private int gold;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "location_code")
     private Location location;
@@ -117,6 +120,25 @@ public class GameCharacter {
         InventorySlot slot = new InventorySlot(this, item);
         inventory.add(slot);
         return slot;
+    }
+
+    public List<InventorySlot> unequippedCopies(String itemCode) {
+        return inventory.stream()
+                .filter(slot -> !slot.isEquipped() && slot.getItem().getCode().equals(itemCode))
+                .toList();
+    }
+
+    public int sell(String itemCode, int quantity) {
+        List<InventorySlot> copies = unequippedCopies(itemCode);
+        if (quantity < 1 || quantity > copies.size()) {
+            throw new IllegalArgumentException("cannot sell " + quantity + " of " + itemCode + ", "
+                    + copies.size() + " unequipped");
+        }
+        List<InventorySlot> sold = copies.subList(copies.size() - quantity, copies.size());
+        int earned = sold.getFirst().getItem().getSellValue() * quantity;
+        inventory.removeAll(sold);
+        gold += earned;
+        return earned;
     }
 
     public void equip(InventorySlot slot) {

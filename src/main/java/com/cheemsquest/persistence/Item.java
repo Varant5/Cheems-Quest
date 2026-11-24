@@ -47,7 +47,11 @@ public class Item {
     @Column(name = "bonus_defense", nullable = false)
     private int bonusDefense;
 
-    public Item(String code, String name, String description, EquipmentSlot slot, Rarity rarity, StatBonus bonus) {
+    @Column(name = "sell_value", nullable = false)
+    private int sellValue;
+
+    public Item(String code, String name, String description, EquipmentSlot slot, Rarity rarity, StatBonus bonus,
+                int sellValue) {
         this.code = code;
         this.name = name;
         this.description = description;
@@ -56,6 +60,7 @@ public class Item {
         this.bonusMaxHp = bonus.maxHp();
         this.bonusAttack = bonus.attack();
         this.bonusDefense = bonus.defense();
+        this.sellValue = sellValue;
     }
 
     public StatBonus bonus() {

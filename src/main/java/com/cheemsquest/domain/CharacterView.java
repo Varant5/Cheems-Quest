@@ -15,6 +15,7 @@ public record CharacterView(
         int maxHp,
         int attack,
         int defense,
+        int gold,
         LocationView location) {
 
     static CharacterView from(GameCharacter character) {
@@ -29,6 +30,7 @@ public record CharacterView(
                 stats.maxHp(),
                 stats.attack(),
                 stats.defense(),
+                character.getGold(),
                 LocationView.from(character.getLocation()));
     }
 }

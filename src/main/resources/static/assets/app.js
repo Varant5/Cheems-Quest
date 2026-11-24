@@ -262,6 +262,7 @@ function renderCharacter() {
     setBar("#exp-bar", c.experience - floor, c.experienceForNextLevel - floor);
     $("#atk").textContent = c.attack;
     $("#def").textContent = c.defense;
+    $("#gold").textContent = c.gold;
 }
 
 function renderLocation() {
@@ -481,23 +482,38 @@ function bonusText(bonus) {
 
 function renderInventory(inventory) {
     Object.assign(state.character, {
-        hp: inventory.hp, maxHp: inventory.maxHp, attack: inventory.attack, defense: inventory.defense
+        hp: inventory.hp, maxHp: inventory.maxHp, attack: inventory.attack, defense: inventory.defense,
+        gold: inventory.gold
     });
     renderCharacter();
     const items = [...inventory.items].sort((a, b) =>
         (b.equipped - a.equipped) || (SLOT_ORDER.indexOf(a.slot) - SLOT_ORDER.indexOf(b.slot)));
+    const fighting = Boolean(state.encounter);
+    const button = (className, textContent, onclick) =>
+        el("button", {type: "button", className, textContent, disabled: fighting, onclick});
     $("#inventory").replaceChildren(...items.map((item) => el("li", {className: `item${item.equipped ? " equipped" : ""}`},
         el("div", {className: "row"},
-            el("span", {className: `name rarity-${item.rarity}`, textContent: item.name}),
-            el("button", {
-                type: "button",
-                className: item.equipped ? "secondary" : "primary",
-                textContent: item.equipped ? "Unequip" : "Equip",
-                disabled: Boolean(state.encounter),
-                onclick: () => toggleItem(item)
-            })),
+            el("span", {className: `name rarity-${item.rarity}`, textContent: item.name},
+                item.quantity > 1 ? el("span", {className: "quantity", textContent: ` ×${item.quantity}`}) : null),
+            el("span", {className: "actions"},
+                button(item.equipped ? "secondary" : "primary", item.equipped ? "Unequip" : "Equip", () => toggleItem(item)),
+                item.equipped ? null : button("secondary", "Sell", () => sellItem(item, 1)),
+                item.quantity > 1 ? button("secondary", "Sell all", () => sellItem(item, item.quantity)) : null)),
         el("p", {textContent: item.description}),
-        el("div", {className: "meta", textContent: `${item.slot} · ${item.rarity} · ${bonusText(item.bonus)}`}))));
+        el("div", {className: "meta", textContent: `${item.slot} · ${item.rarity} · ${bonusText(item.bonus)} · ${item.sellValue} gold`}))));
+}
+
+async function sellItem(item, quantity) {
+    const precious = item.rarity === "EPIC" || item.rarity === "LEGENDARY";
+    if (precious && !confirm(`Sell ${quantity > 1 ? `${quantity}× ` : ""}${item.name}? Very rare. Much regret?`)) {
+        return;
+    }
+    await guarded(async () => {
+        const inventory = await api("POST", `/characters/${state.character.id}/inventory/sell`, {code: item.code, quantity});
+        renderInventory(inventory);
+        const label = quantity > 1 ? `${quantity}× ${item.name}` : item.name;
+        log(`${state.character.name} sells ${label} for ${item.sellValue * quantity} gold. Stonks.`, "loot");
+    });
 }
 
 async function toggleItem(item) {

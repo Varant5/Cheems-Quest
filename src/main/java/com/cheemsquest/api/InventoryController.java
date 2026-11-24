@@ -7,12 +7,14 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -58,5 +60,18 @@ class InventoryController {
             content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class)))
     InventoryView unequip(@PathVariable UUID id, @PathVariable UUID itemId) {
         return inventoryService.unequip(id, itemId);
+    }
+
+    @PostMapping("/sell")
+    @Operation(summary = "Sell items", description = "Sells unequipped copies of an item for gold. Equipped items cannot be sold.")
+    @ApiResponse(responseCode = "200", description = "Sold, inventory with updated gold")
+    @ApiResponse(responseCode = "400", description = "Invalid request",
+            content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class)))
+    @ApiResponse(responseCode = "404", description = "No such character or item in the inventory",
+            content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class)))
+    @ApiResponse(responseCode = "409", description = "In a fight, item equipped or not enough copies",
+            content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class)))
+    InventoryView sell(@PathVariable UUID id, @Valid @RequestBody SellRequest request) {
+        return inventoryService.sell(id, request.code(), request.quantity());
     }
 }

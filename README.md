@@ -98,6 +98,7 @@ curl -s -X POST localhost:8080/api/characters/$ID/encounter/action \
 | GET | `/api/characters/{id}/inventory` | Items and stats with equipment |
 | POST | `/api/characters/{id}/inventory/{itemId}/equip` | Equip an item |
 | POST | `/api/characters/{id}/inventory/{itemId}/unequip` | Unequip an item |
+| POST | `/api/characters/{id}/inventory/sell` | Sell unequipped copies of an item for gold |
 | GET | `/api/characters/{id}/quests` | Quest log |
 | POST | `/api/characters/{id}/quests/{code}/accept` | Accept a quest |
 
