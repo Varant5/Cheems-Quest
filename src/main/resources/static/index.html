@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cheems Quest</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐕</text></svg>">
+    <link rel="stylesheet" href="assets/app.css">
+    <script src="assets/app.js" defer></script>
+</head>
+<body>
+<header class="topbar">
+    <h1 class="logo">CHEEMS<span>QUEST</span></h1>
+    <div id="session" class="session" hidden>
+        <span id="session-user"></span>
+        <button id="to-characters" class="link" type="button">Characters</button>
+        <a class="link" href="swagger-ui.html" target="_blank" rel="noopener">API</a>
+        <button id="logout" class="link" type="button">Log out</button>
+    </div>
+</header>
+
+<main>
+    <section id="auth" class="screen auth" hidden>
+        <div class="card auth-card">
+            <p class="tagline">A turn-based RPG over REST. Much bonk. Very API.</p>
+            <div class="tabs" role="tablist">
+                <button type="button" class="tab active" data-mode="login" role="tab">Log in</button>
+                <button type="button" class="tab" data-mode="register" role="tab">Register</button>
+            </div>
+            <form id="auth-form" autocomplete="on">
+                <label>Username
+                    <input name="username" required minlength="3" maxlength="32" pattern="[A-Za-z0-9_]{3,32}"
+                           autocomplete="username" placeholder="bonk_master">
+                </label>
+                <label>Password
+                    <input name="password" type="password" required maxlength="72" autocomplete="current-password"
+                           placeholder="at least 8 characters">
+                </label>
+                <button class="primary" type="submit" id="auth-submit">Log in</button>
+                <p id="auth-error" class="error" role="alert"></p>
+            </form>
+        </div>
+    </section>
+
+    <section id="characters" class="screen" hidden>
+        <div class="card">
+            <h2>Choose your Cheems</h2>
+            <ul id="character-list" class="character-list"></ul>
+            <p id="no-characters" class="muted" hidden>No characters yet. Such empty.</p>
+            <form id="create-form" class="inline-form">
+                <input name="name" required maxlength="32" placeholder="Character name" value="Cheems">
+                <button class="primary" type="submit">Create</button>
+            </form>
+            <p id="characters-error" class="error" role="alert"></p>
+        </div>
+    </section>
+
+    <section id="game" class="screen game" hidden>
+        <aside class="column">
+            <div class="card">
+                <h2 id="char-name"></h2>
+                <p class="muted" id="char-level"></p>
+                <div class="meter">
+                    <div class="meter-label"><span>HP</span><span id="hp-text"></span></div>
+                    <div class="bar"><div id="hp-bar" class="fill hp"></div></div>
+                </div>
+                <div class="meter">
+                    <div class="meter-label"><span>EXP</span><span id="exp-text"></span></div>
+                    <div class="bar"><div id="exp-bar" class="fill exp"></div></div>
+                </div>
+                <dl class="stats">
+                    <div><dt>ATK</dt><dd id="atk"></dd></div>
+                    <div><dt>DEF</dt><dd id="def"></dd></div>
+                </dl>
+            </div>
+            <div class="card">
+                <h2 id="loc-name"></h2>
+                <p id="loc-desc" class="muted small"></p>
+                <div class="compass" id="compass">
+                    <button type="button" data-dir="NORTH" class="n" title="North (W / ↑)">N</button>
+                    <button type="button" data-dir="WEST" class="w" title="West (A / ←)">W</button>
+                    <span class="here">🐕</span>
+                    <button type="button" data-dir="EAST" class="e" title="East (D / →)">E</button>
+                    <button type="button" data-dir="SOUTH" class="s" title="South (S / ↓)">S</button>
+                </div>
+            </div>
+        </aside>
+
+        <div class="column center">
+            <div class="card combat" id="combat" hidden>
+                <h2>Fight!</h2>
+                <ul id="enemies" class="enemies"></ul>
+                <div class="skills">
+                    <button type="button" class="skill" data-skill="BONK">
+                        <kbd>1</kbd> Bonk <small>reliable, may crit</small>
+                    </button>
+                    <button type="button" class="skill" data-skill="BITE">
+                        <kbd>2</kbd> Bite <small>strong, may miss</small>
+                    </button>
+                    <button type="button" class="skill" data-skill="BONKING_SPIN">
+                        <kbd>3</kbd> Bonking Spin <small>hits everyone</small>
+                    </button>
+                </div>
+            </div>
+            <div class="card log-card">
+                <h2>Adventure log</h2>
+                <ol id="log" class="log" aria-live="polite"></ol>
+            </div>
+        </div>
+
+        <aside class="column">
+            <div class="card">
+                <div class="tabs" role="tablist">
+                    <button type="button" class="tab active" data-panel="inventory" role="tab">Inventory</button>
+                    <button type="button" class="tab" data-panel="quests" role="tab">Quests</button>
+                </div>
+                <ul id="inventory" class="items panel"></ul>
+                <ul id="quests" class="items panel" hidden></ul>
+            </div>
+        </aside>
+    </section>
+</main>
+</body>
+</html>
