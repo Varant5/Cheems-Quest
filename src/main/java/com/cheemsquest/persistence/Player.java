@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 @Entity
@@ -26,11 +27,20 @@ public class Player {
     @Column(nullable = false, unique = true, length = 32)
     private String username;
 
+    @Getter(AccessLevel.NONE)
+    @Column(name = "password_hash", length = 100)
+    private String passwordHash;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    public Player(String username) {
+    public Player(String username, String passwordHash) {
         this.username = username;
+        this.passwordHash = passwordHash;
         this.createdAt = Instant.now();
+    }
+
+    public Optional<String> passwordHash() {
+        return Optional.ofNullable(passwordHash);
     }
 }

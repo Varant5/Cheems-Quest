@@ -75,7 +75,7 @@ class PersistenceTest {
 
     @Test
     void savesAndReloadsCharacter() {
-        Player player = players.save(new Player("cheems_fan"));
+        Player player = players.save(new Player("cheems_fan", "{noop}secret"));
         Location doghouse = locations.getReferenceById("CHEEMS_DOGHOUSE");
         GameCharacter cheems = characters.save(new GameCharacter(player, "Cheems", new Stats(65, 14, 3), doghouse));
         em.flush();
@@ -92,9 +92,9 @@ class PersistenceTest {
 
     @Test
     void usernamesAreUnique() {
-        players.saveAndFlush(new Player("doge"));
+        players.saveAndFlush(new Player("doge", "{noop}secret"));
 
-        assertThatThrownBy(() -> players.saveAndFlush(new Player("doge")))
+        assertThatThrownBy(() -> players.saveAndFlush(new Player("doge", "{noop}secret")))
                 .isInstanceOf(DataIntegrityViolationException.class);
     }
 }

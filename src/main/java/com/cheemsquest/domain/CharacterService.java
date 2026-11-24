@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -24,11 +25,10 @@ public class CharacterService {
     private final ItemRepository items;
     private final EncounterService encounterService;
 
-    // Temporary: the player is identified by username until JWT arrives.
     @Transactional
-    public CharacterView create(String username, String characterName) {
-        Player player = players.findByUsername(username)
-                .orElseGet(() -> players.save(new Player(username)));
+    public CharacterView create(UUID playerId, String characterName) {
+        Player player = players.findById(playerId)
+                .orElseThrow(() -> new NotFoundException("Player " + playerId + " not found"));
         Location home = encounterService.homeLocation();
         Item starterWeapon = items.findById(GameRules.STARTER_WEAPON)
                 .orElseThrow(() -> new IllegalStateException("Starter weapon " + GameRules.STARTER_WEAPON + " is missing"));
@@ -36,6 +36,13 @@ public class CharacterService {
         GameCharacter character = new GameCharacter(player, characterName, GameRules.STARTING_STATS, home);
         character.equip(character.addItem(starterWeapon));
         return CharacterView.from(characters.save(character));
+    }
+
+    @Transactional(readOnly = true)
+    public List<CharacterView> list(UUID playerId) {
+        return characters.findByPlayerIdOrderByCreatedAt(playerId).stream()
+                .map(CharacterView::from)
+                .toList();
     }
 
     @Transactional(readOnly = true)

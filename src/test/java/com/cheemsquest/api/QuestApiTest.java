@@ -3,15 +3,14 @@ package com.cheemsquest.api;
 import com.cheemsquest.TestRandomConfiguration;
 import com.cheemsquest.TestRandomConfiguration.SettableRandom;
 import com.cheemsquest.TestcontainersConfiguration;
-import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.context.WebApplicationContext;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -19,26 +18,24 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
-@AutoConfigureMockMvc
 @Import({TestcontainersConfiguration.class, TestRandomConfiguration.class})
 class QuestApiTest {
 
     @Autowired
-    private MockMvc mvc;
+    private WebApplicationContext context;
 
     @Autowired
     private SettableRandom rng;
+
+    private MockMvc mvc;
 
     private String id;
 
     @BeforeEach
     void createCharacter() throws Exception {
         rng.reset();
-        String body = mvc.perform(post("/api/characters").contentType(MediaType.APPLICATION_JSON).content("""
-                        {"username": "quest_tester", "name": "Cheems"}
-                        """))
-                .andReturn().getResponse().getContentAsString();
-        id = JsonPath.read(body, "$.id");
+        mvc = TestPlayers.newPlayer(context);
+        id = TestPlayers.createCharacter(mvc);
     }
 
     @Test

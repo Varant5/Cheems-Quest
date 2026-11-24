@@ -39,12 +39,16 @@ class EnemyDefeatedEventTest {
     @Autowired
     private QuestService questService;
 
+    @Autowired
+    private AuthService authService;
+
     private UUID characterId;
 
     @BeforeEach
     void createCharacter() {
         rng.reset();
-        characterId = characterService.create("event_tester", "Cheems").id();
+        PlayerView player = authService.register("event_tester", "much-secret-very-safe");
+        characterId = characterService.create(player.id(), "Cheems").id();
     }
 
     private GameLog defeat(String enemyCode, String enemyName, int exp) {
