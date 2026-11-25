@@ -4,14 +4,15 @@ import java.util.List;
 
 public enum Targeting {
     SINGLE,
-    ALL_ENEMIES;
+    ALL_ENEMIES,
+    SELF;
 
     void validate(List<?> targets) {
         if (targets.isEmpty()) {
             throw new IllegalArgumentException("skill needs at least one target");
         }
-        if (this == SINGLE && targets.size() != 1) {
-            throw new IllegalArgumentException("single-target skill got " + targets.size() + " targets");
+        if (this != ALL_ENEMIES && targets.size() != 1) {
+            throw new IllegalArgumentException(this + " skill got " + targets.size() + " targets");
         }
     }
 }

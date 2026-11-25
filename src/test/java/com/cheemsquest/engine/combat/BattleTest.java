@@ -1,10 +1,12 @@
 package com.cheemsquest.engine.combat;
 
 import com.cheemsquest.engine.ConstantRandom;
+import com.cheemsquest.engine.item.ItemEffect;
 import com.cheemsquest.engine.model.Combatant;
 import com.cheemsquest.engine.model.Stats;
 import com.cheemsquest.engine.skill.Bonk;
 import com.cheemsquest.engine.skill.BonkingSpin;
+import com.cheemsquest.engine.skill.HitOutcome;
 import com.cheemsquest.engine.skill.Skill;
 import com.cheemsquest.engine.skill.SkillResult;
 import org.junit.jupiter.api.Test;
@@ -150,6 +152,33 @@ class BattleTest {
         assertThat(battle.getStatus()).isEqualTo(BattleStatus.PLAYER_TURN);
         assertThat(battle.getLog()).isEmpty();
         assertThat(karen.getHp()).isEqualTo(30);
+    }
+
+    @Test
+    void healingItemTakesTheTurnAndEnemyStillAttacks() {
+        Combatant hurt = new Combatant("Cheems", new Stats(50, 20, 2), 20);
+        Combatant karen = karen(30);
+        Battle battle = battle(hurt, karen);
+
+        RoundResult round = battle.act(ItemEffect.HEAL.inBattle("Cheemsburger", 30).orElseThrow());
+
+        assertThat(round.status()).isEqualTo(BattleStatus.PLAYER_TURN);
+        assertThat(round.actions()).extracting(SkillResult::user).containsExactly(hurt, karen);
+        assertThat(hurt.getHp()).isEqualTo(42);
+        assertThat(karen.getHp()).isEqualTo(30);
+    }
+
+    @Test
+    void luckyCharmMakesTheNextAttackCrit() {
+        Combatant karen = karen(30);
+        Battle battle = battle(cheems, karen);
+        battle.act(ItemEffect.GUARANTEED_CRIT.inBattle("Lucky Dice", 0).orElseThrow());
+
+        RoundResult round = battle.act(BONK, karen);
+
+        assertThat(round.status()).isEqualTo(BattleStatus.VICTORY);
+        assertThat(round.actions().getFirst().hits().getFirst().outcome()).isEqualTo(HitOutcome.CRITICAL);
+        assertThat(cheems.isLucky()).isFalse();
     }
 
     @Test

@@ -76,6 +76,7 @@ public class Battle {
     List<Combatant> resolveTargets(Skill skill, Combatant target) {
         return switch (skill.targeting()) {
             case ALL_ENEMIES -> livingEnemies();
+            case SELF -> List.of(player);
             case SINGLE -> {
                 if (target == null) {
                     throw new IllegalArgumentException(skill.name() + " needs a target");

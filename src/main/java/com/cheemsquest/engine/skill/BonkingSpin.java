@@ -23,12 +23,15 @@ public class BonkingSpin implements Skill {
     public SkillResult use(Combatant user, List<Combatant> targets, RandomGenerator rng) {
         targeting().validate(targets);
 
+        boolean lucky = user.consumeLuck();
+        double multiplier = lucky ? MULTIPLIER * DamageFormula.CRIT_MULTIPLIER : MULTIPLIER;
+        HitOutcome outcome = lucky ? HitOutcome.CRITICAL : HitOutcome.HIT;
         List<Hit> hits = targets.stream()
                 .filter(Combatant::isAlive)
                 .map(target -> {
                     int damage = DamageFormula.compute(
-                            user.getStats().attack(), MULTIPLIER, target.getStats().defense(), rng);
-                    return new Hit(target, target.takeDamage(damage), HitOutcome.HIT);
+                            user.getStats().attack(), multiplier, target.getStats().defense(), rng);
+                    return new Hit(target, target.takeDamage(damage), outcome);
                 })
                 .toList();
         return new SkillResult(name(), user, hits);

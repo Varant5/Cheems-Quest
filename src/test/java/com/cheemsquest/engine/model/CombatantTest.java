@@ -51,4 +51,34 @@ class CombatantTest {
                 .isInstanceOf(IllegalArgumentException.class);
         assertThat(karen.getHp()).isEqualTo(30);
     }
+
+    @Test
+    void healingIsCappedAtMaxHp() {
+        Combatant karen = new Combatant("Karen Doge", STATS, 20);
+
+        assertThat(karen.heal(30)).isEqualTo(10);
+        assertThat(karen.getHp()).isEqualTo(30);
+    }
+
+    @Test
+    void faintedOrNegativeHealingIsRejected() {
+        Combatant fainted = new Combatant("Karen Doge", STATS, 0);
+        Combatant karen = new Combatant("Karen Doge", STATS, 10);
+
+        assertThatThrownBy(() -> fainted.heal(5)).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> karen.heal(-1)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void luckIsConsumedOnce() {
+        Combatant cheems = new Combatant("Cheems", STATS);
+        assertThat(cheems.consumeLuck()).isFalse();
+
+        cheems.bless();
+
+        assertThat(cheems.isLucky()).isTrue();
+        assertThat(cheems.consumeLuck()).isTrue();
+        assertThat(cheems.isLucky()).isFalse();
+        assertThat(cheems.consumeLuck()).isFalse();
+    }
 }

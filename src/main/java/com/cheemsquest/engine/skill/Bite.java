@@ -25,11 +25,13 @@ public class Bite implements Skill {
         targeting().validate(targets);
         Combatant target = targets.getFirst();
 
-        if (rng.nextDouble() < MISS_CHANCE) {
+        boolean lucky = user.consumeLuck();
+        if (!lucky && rng.nextDouble() < MISS_CHANCE) {
             return new SkillResult(name(), user, List.of(Hit.miss(target)));
         }
-        int damage = DamageFormula.compute(user.getStats().attack(), MULTIPLIER, target.getStats().defense(), rng);
+        double multiplier = lucky ? MULTIPLIER * DamageFormula.CRIT_MULTIPLIER : MULTIPLIER;
+        int damage = DamageFormula.compute(user.getStats().attack(), multiplier, target.getStats().defense(), rng);
         int dealt = target.takeDamage(damage);
-        return new SkillResult(name(), user, List.of(new Hit(target, dealt, HitOutcome.HIT)));
+        return new SkillResult(name(), user, List.of(new Hit(target, dealt, lucky ? HitOutcome.CRITICAL : HitOutcome.HIT)));
     }
 }

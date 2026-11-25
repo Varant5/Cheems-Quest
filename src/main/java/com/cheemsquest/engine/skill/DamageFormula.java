@@ -5,6 +5,7 @@ import java.util.random.RandomGenerator;
 final class DamageFormula {
 
     static final double VARIANCE = 0.10;
+    static final double CRIT_MULTIPLIER = 1.5;
 
     private DamageFormula() {
     }

@@ -51,6 +51,18 @@ class SkillTest {
         }
 
         @Test
+        void luckySkipsTheCritRollAndAlwaysCrits() {
+            Combatant karen = enemy(4);
+            cheems.bless();
+
+            SkillResult result = bonk.use(cheems, List.of(karen), FixedRandom.of(NEUTRAL_ROLL));
+
+            assertThat(result.hits().getFirst().damage()).isEqualTo(26);
+            assertThat(result.hits().getFirst().outcome()).isEqualTo(HitOutcome.CRITICAL);
+            assertThat(cheems.isLucky()).isFalse();
+        }
+
+        @Test
         void alwaysDealsAtLeastOneDamage() {
             Combatant weakling = new Combatant("Baby Cheems", new Stats(10, 1, 0));
             Combatant tank = enemy(50);
@@ -103,6 +115,19 @@ class SkillTest {
             assertThat(result.totalDamage()).isZero();
             assertThat(karen.getHp()).isEqualTo(100);
         }
+
+        @Test
+        void luckyBiteCannotMissAndCrits() {
+            Combatant karen = enemy(4);
+            cheems.bless();
+
+            SkillResult result = bite.use(cheems, List.of(karen), FixedRandom.of(NEUTRAL_ROLL));
+
+            // 20 * 1.6 * 1.5 - 4
+            assertThat(result.totalDamage()).isEqualTo(44);
+            assertThat(result.hits().getFirst().outcome()).isEqualTo(HitOutcome.CRITICAL);
+            assertThat(cheems.isLucky()).isFalse();
+        }
     }
 
     @Nested
@@ -125,6 +150,22 @@ class SkillTest {
                             org.assertj.core.groups.Tuple.tuple(armored, 8),
                             org.assertj.core.groups.Tuple.tuple(naked, 12));
             assertThat(result.totalDamage()).isEqualTo(20);
+        }
+
+        @Test
+        void luckySpinCritsEveryone() {
+            Combatant armored = enemy(4);
+            Combatant naked = enemy(0);
+            cheems.bless();
+
+            SkillResult result = spin.use(cheems, List.of(armored, naked), FixedRandom.of(NEUTRAL_ROLL, NEUTRAL_ROLL));
+
+            // 20 * 0.6 * 1.5 = 18
+            assertThat(result.hits()).extracting(Hit::damage, Hit::outcome)
+                    .containsExactly(
+                            org.assertj.core.groups.Tuple.tuple(14, HitOutcome.CRITICAL),
+                            org.assertj.core.groups.Tuple.tuple(18, HitOutcome.CRITICAL));
+            assertThat(cheems.isLucky()).isFalse();
         }
 
         @Test

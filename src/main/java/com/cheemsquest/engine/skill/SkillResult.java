@@ -11,6 +11,6 @@ public record SkillResult(String skillName, Combatant user, List<Hit> hits) {
     }
 
     public int totalDamage() {
-        return hits.stream().mapToInt(Hit::damage).sum();
+        return hits.stream().filter(hit -> hit.outcome().dealsDamage()).mapToInt(Hit::damage).sum();
     }
 }

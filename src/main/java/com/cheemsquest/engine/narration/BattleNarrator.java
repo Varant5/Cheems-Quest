@@ -27,8 +27,10 @@ public final class BattleNarrator {
                 case MISS -> target + " dodges. Such dodge.";
                 case CRITICAL -> "CRITICAL! " + target + " loses " + hit.damage() + " HP.";
                 case HIT -> target + " loses " + hit.damage() + " HP.";
+                case HEAL -> target + " heals " + hit.damage() + " HP. Much yum.";
+                case LUCK -> target + " feels lucky. The next attack will crit!";
             });
-            if (hit.damage() > 0 && !hit.target().isAlive()) {
+            if (hit.outcome().dealsDamage() && hit.damage() > 0 && !hit.target().isAlive()) {
                 lines.add(target + " is down!");
             }
         }

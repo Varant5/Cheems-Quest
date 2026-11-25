@@ -64,6 +64,16 @@ class BattleNarratorTest {
     }
 
     @Test
+    void narratesItemsUsedInAFight() {
+        assertThat(BattleNarrator.narrate(new SkillResult("Cheemsburger", cheems,
+                List.of(new Hit(cheems, 30, HitOutcome.HEAL)))))
+                .containsExactly("Cheems uses Cheemsburger!", "Cheems heals 30 HP. Much yum.");
+        assertThat(BattleNarrator.narrate(new SkillResult("Lucky Dice", cheems,
+                List.of(new Hit(cheems, 0, HitOutcome.LUCK)))))
+                .containsExactly("Cheems uses Lucky Dice!", "Cheems feels lucky. The next attack will crit!");
+    }
+
+    @Test
     void narratesWholeRoundInOrder() {
         Combatant karen = enemy("Wild Karen Doge", 16);
         RoundResult round = new RoundResult(List.of(
