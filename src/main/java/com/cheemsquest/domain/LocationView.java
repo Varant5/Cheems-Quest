@@ -5,10 +5,11 @@ import com.cheemsquest.persistence.Location;
 
 import java.util.List;
 
-public record LocationView(String code, String name, String description, List<Direction> exits) {
+public record LocationView(String code, String name, String description, List<Direction> exits, boolean shop) {
 
     static LocationView from(Location location) {
         List<Direction> exits = location.getExits().keySet().stream().sorted().toList();
-        return new LocationView(location.getCode(), location.getName(), location.getDescription(), exits);
+        return new LocationView(location.getCode(), location.getName(), location.getDescription(), exits,
+                location.hasShop());
     }
 }

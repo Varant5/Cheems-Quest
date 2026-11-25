@@ -1,6 +1,7 @@
 package com.cheemsquest.persistence;
 
 import com.cheemsquest.engine.item.EquipmentSlot;
+import com.cheemsquest.engine.item.ItemEffect;
 import com.cheemsquest.engine.item.Rarity;
 import com.cheemsquest.engine.model.StatBonus;
 import jakarta.persistence.Column;
@@ -13,6 +14,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Immutable;
+
+import java.util.Optional;
 
 @Entity
 @Table(name = "item")
@@ -31,7 +34,7 @@ public class Item {
     private String description;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 16)
+    @Column(length = 16)
     private EquipmentSlot slot;
 
     @Enumerated(EnumType.STRING)
@@ -47,8 +50,19 @@ public class Item {
     @Column(name = "bonus_defense", nullable = false)
     private int bonusDefense;
 
+    @Enumerated(EnumType.STRING)
+    @Column(length = 16)
+    private ItemEffect effect;
+
+    @Column(name = "effect_power", nullable = false)
+    private int effectPower;
+
     @Column(name = "sell_value", nullable = false)
     private int sellValue;
+
+    @Getter(AccessLevel.NONE)
+    @Column(name = "buy_price")
+    private Integer buyPrice;
 
     public Item(String code, String name, String description, EquipmentSlot slot, Rarity rarity, StatBonus bonus,
                 int sellValue) {
@@ -63,7 +77,28 @@ public class Item {
         this.sellValue = sellValue;
     }
 
+    public static Item consumable(String code, String name, Rarity rarity, ItemEffect effect, int effectPower,
+                                  int sellValue, int buyPrice) {
+        Item item = new Item(code, name, "", null, rarity, StatBonus.NONE, sellValue);
+        item.effect = effect;
+        item.effectPower = effectPower;
+        item.buyPrice = buyPrice;
+        return item;
+    }
+
     public StatBonus bonus() {
         return new StatBonus(bonusMaxHp, bonusAttack, bonusDefense);
+    }
+
+    public boolean isEquipment() {
+        return slot != null;
+    }
+
+    public boolean isConsumable() {
+        return effect != null;
+    }
+
+    public Optional<Integer> buyPrice() {
+        return Optional.ofNullable(buyPrice);
     }
 }

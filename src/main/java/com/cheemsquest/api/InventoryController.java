@@ -62,6 +62,17 @@ class InventoryController {
         return inventoryService.unequip(id, itemId);
     }
 
+    @PostMapping("/{itemId}/use")
+    @Operation(summary = "Use a consumable", description = "Eats a Cheemsburger, invests in a Doge Coin. Consumes one copy.")
+    @ApiResponse(responseCode = "200", description = "Used")
+    @ApiResponse(responseCode = "404", description = "No such character or item",
+            content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class)))
+    @ApiResponse(responseCode = "409", description = "In a fight, not a consumable, fight-only item or already at full HP",
+            content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class)))
+    InventoryView use(@PathVariable UUID id, @PathVariable UUID itemId) {
+        return inventoryService.use(id, itemId);
+    }
+
     @PostMapping("/sell")
     @Operation(summary = "Sell items", description = "Sells unequipped copies of an item for gold. Equipped items cannot be sold.")
     @ApiResponse(responseCode = "200", description = "Sold, inventory with updated gold")
@@ -71,7 +82,7 @@ class InventoryController {
             content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class)))
     @ApiResponse(responseCode = "409", description = "In a fight, item equipped or not enough copies",
             content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class)))
-    InventoryView sell(@PathVariable UUID id, @Valid @RequestBody SellRequest request) {
+    InventoryView sell(@PathVariable UUID id, @Valid @RequestBody TradeRequest request) {
         return inventoryService.sell(id, request.code(), request.quantity());
     }
 }

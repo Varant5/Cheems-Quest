@@ -58,8 +58,24 @@ public class Location {
     @OrderBy("weight DESC")
     private List<SpawnEntry> spawns = new ArrayList<>();
 
+    @ManyToMany
+    @JoinTable(
+            name = "shop_item",
+            joinColumns = @JoinColumn(name = "location_code"),
+            inverseJoinColumns = @JoinColumn(name = "item_code"))
+    @OrderBy("buyPrice")
+    private List<Item> shopItems = new ArrayList<>();
+
     public Optional<Location> exit(Direction direction) {
         return Optional.ofNullable(exits.get(direction));
+    }
+
+    public boolean hasShop() {
+        return !shopItems.isEmpty();
+    }
+
+    public Optional<Item> shopItem(String itemCode) {
+        return shopItems.stream().filter(item -> item.getCode().equals(itemCode)).findFirst();
     }
 
     public boolean isSafe() {

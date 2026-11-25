@@ -141,8 +141,54 @@ public class GameCharacter {
         return earned;
     }
 
+    public void addGold(int amount) {
+        if (amount < 0) {
+            throw new IllegalArgumentException("gold gain cannot be negative, got " + amount);
+        }
+        gold += amount;
+    }
+
+    public int buy(Item item, int quantity) {
+        int price = item.buyPrice()
+                .orElseThrow(() -> new IllegalArgumentException(item.getCode() + " is not for sale"));
+        int total = price * quantity;
+        if (quantity < 1 || total > gold) {
+            throw new IllegalArgumentException("cannot buy " + quantity + " of " + item.getCode() + " with " + gold + " gold");
+        }
+        gold -= total;
+        for (int i = 0; i < quantity; i++) {
+            addItem(item);
+        }
+        return total;
+    }
+
+    public int use(InventorySlot slot) {
+        requireOwned(slot);
+        Item item = slot.getItem();
+        if (!item.isConsumable()) {
+            throw new IllegalArgumentException(item.getCode() + " is not consumable");
+        }
+        int effect = switch (item.getEffect()) {
+            case HEAL -> {
+                int before = currentHp;
+                currentHp = Math.min(stats().maxHp(), currentHp + item.getEffectPower());
+                yield currentHp - before;
+            }
+            case PERMANENT_ATTACK -> {
+                baseAttack += item.getEffectPower();
+                yield item.getEffectPower();
+            }
+            case GUARANTEED_CRIT -> throw new IllegalArgumentException(item.getCode() + " only works in a fight");
+        };
+        inventory.remove(slot);
+        return effect;
+    }
+
     public void equip(InventorySlot slot) {
         requireOwned(slot);
+        if (!slot.getItem().isEquipment()) {
+            throw new IllegalArgumentException(slot.getItem().getCode() + " cannot be equipped");
+        }
         EquipmentSlot target = slot.getItem().getSlot();
         inventory.stream()
                 .filter(other -> other != slot && other.isEquipped() && other.getItem().getSlot() == target)

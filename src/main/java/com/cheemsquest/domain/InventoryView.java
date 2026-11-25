@@ -1,6 +1,7 @@
 package com.cheemsquest.domain;
 
 import com.cheemsquest.engine.item.EquipmentSlot;
+import com.cheemsquest.engine.item.ItemEffect;
 import com.cheemsquest.engine.item.Rarity;
 import com.cheemsquest.engine.model.StatBonus;
 import com.cheemsquest.engine.model.Stats;
@@ -24,6 +25,8 @@ public record InventoryView(List<ItemView> items, int gold, int hp, int maxHp, i
             EquipmentSlot slot,
             Rarity rarity,
             StatBonus bonus,
+            ItemEffect effect,
+            int effectPower,
             int sellValue,
             int quantity,
             boolean equipped) {
@@ -32,7 +35,8 @@ public record InventoryView(List<ItemView> items, int gold, int hp, int maxHp, i
             InventorySlot first = copies.getFirst();
             Item item = first.getItem();
             return new ItemView(first.getId(), item.getCode(), item.getName(), item.getDescription(),
-                    item.getSlot(), item.getRarity(), item.bonus(), item.getSellValue(), copies.size(),
+                    item.getSlot(), item.getRarity(), item.bonus(), item.getEffect(), item.getEffectPower(),
+                    item.getSellValue(), copies.size(),
                     first.isEquipped());
         }
     }

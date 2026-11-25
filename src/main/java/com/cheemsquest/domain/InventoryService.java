@@ -1,8 +1,10 @@
 package com.cheemsquest.domain;
 
+import com.cheemsquest.engine.item.ItemEffect;
 import com.cheemsquest.persistence.GameCharacter;
 import com.cheemsquest.persistence.GameCharacterRepository;
 import com.cheemsquest.persistence.InventorySlot;
+import com.cheemsquest.persistence.Item;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +17,7 @@ public class InventoryService {
 
     private static final String OUTFIT_MID_FIGHT = "No time to change outfits mid-fight. Such danger!";
     private static final String SHOPPING_MID_FIGHT = "No time for selling stuff mid-fight. Such danger!";
+    private static final String SNACKS_MID_FIGHT = "No time for snacks mid-fight. Such danger!";
 
     private final GameCharacterRepository characters;
     private final EncounterService encounterService;
@@ -27,7 +30,29 @@ public class InventoryService {
     @Transactional
     public InventoryView equip(UUID characterId, UUID slotId) {
         GameCharacter character = loadOutsideOfFight(characterId, OUTFIT_MID_FIGHT);
-        character.equip(slot(character, slotId));
+        InventorySlot slot = slot(character, slotId);
+        if (!slot.getItem().isEquipment()) {
+            throw new GameRuleException("Cannot wear " + slot.getItem().getName() + ". Try using it instead.");
+        }
+        character.equip(slot);
+        return InventoryView.from(character);
+    }
+
+    @Transactional
+    public InventoryView use(UUID characterId, UUID slotId) {
+        GameCharacter character = loadOutsideOfFight(characterId, SNACKS_MID_FIGHT);
+        InventorySlot slot = slot(character, slotId);
+        Item item = slot.getItem();
+        if (!item.isConsumable()) {
+            throw new GameRuleException(item.getName() + " is not something you can use. Try equipping it.");
+        }
+        if (item.getEffect() == ItemEffect.GUARANTEED_CRIT) {
+            throw new GameRuleException(item.getName() + " only works in a fight. Save it for a bonk.");
+        }
+        if (item.getEffect() == ItemEffect.HEAL && character.getCurrentHp() >= character.stats().maxHp()) {
+            throw new GameRuleException("Already at full HP. Save the " + item.getName() + " for later.");
+        }
+        character.use(slot);
         return InventoryView.from(character);
     }
 

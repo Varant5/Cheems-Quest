@@ -1,6 +1,7 @@
 package com.cheemsquest.persistence;
 
 import com.cheemsquest.engine.item.EquipmentSlot;
+import com.cheemsquest.engine.item.ItemEffect;
 import com.cheemsquest.engine.item.Rarity;
 import com.cheemsquest.engine.model.StatBonus;
 import com.cheemsquest.engine.model.Stats;
@@ -17,6 +18,12 @@ class GameCharacterTest {
             Rarity.LEGENDARY, new StatBonus(0, 8, 0), 150);
     private static final Item HELMET = new Item("STONKS_HELMET", "Stonks Helmet", "", EquipmentSlot.HEAD, Rarity.EPIC,
             new StatBonus(10, 0, 3), 40);
+    private static final Item BURGER = Item.consumable("CHEEMSBURGER", "Cheemsburger", Rarity.COMMON, ItemEffect.HEAL,
+            30, 5, 15);
+    private static final Item COIN = Item.consumable("DOGE_COIN", "Doge Coin", Rarity.LEGENDARY,
+            ItemEffect.PERMANENT_ATTACK, 10, 200, 500);
+    private static final Item DICE = Item.consumable("LUCKY_DICE", "Lucky Dice", Rarity.RARE,
+            ItemEffect.GUARANTEED_CRIT, 0, 15, 40);
 
     private final GameCharacter cheems = new GameCharacter(null, "Cheems", new Stats(65, 14, 3), null);
 
@@ -139,5 +146,59 @@ class GameCharacterTest {
         assertThatThrownBy(() -> cheems.sell("LEGENDARY_BONE", 1)).isInstanceOf(IllegalArgumentException.class);
         assertThat(cheems.getInventory()).hasSize(2);
         assertThat(cheems.getGold()).isZero();
+    }
+
+    @Test
+    void buyingPaysGoldAndAddsCopies() {
+        cheems.addGold(50);
+
+        int paid = cheems.buy(BURGER, 3);
+
+        assertThat(paid).isEqualTo(45);
+        assertThat(cheems.getGold()).isEqualTo(5);
+        assertThat(cheems.getInventory()).hasSize(3).allSatisfy(slot -> assertThat(slot.getItem()).isEqualTo(BURGER));
+    }
+
+    @Test
+    void cannotBuyWithoutGoldOrItemsNotForSale() {
+        cheems.addGold(14);
+
+        assertThatThrownBy(() -> cheems.buy(BURGER, 1)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> cheems.buy(STICK, 1)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> cheems.addGold(-1)).isInstanceOf(IllegalArgumentException.class);
+        assertThat(cheems.getGold()).isEqualTo(14);
+        assertThat(cheems.getInventory()).isEmpty();
+    }
+
+    @Test
+    void burgerHealsUpToMaxHpAndIsConsumed() {
+        cheems.updateHp(50);
+        InventorySlot burger = cheems.addItem(BURGER);
+
+        int healed = cheems.use(burger);
+
+        assertThat(healed).isEqualTo(15);
+        assertThat(cheems.getCurrentHp()).isEqualTo(65);
+        assertThat(cheems.getInventory()).isEmpty();
+    }
+
+    @Test
+    void dogeCoinRaisesBaseAttackForever() {
+        cheems.use(cheems.addItem(COIN));
+
+        assertThat(cheems.baseStats().attack()).isEqualTo(24);
+        assertThat(cheems.getInventory()).isEmpty();
+    }
+
+    @Test
+    void consumablesCannotBeWornAndGearCannotBeEaten() {
+        InventorySlot burger = cheems.addItem(BURGER);
+        InventorySlot dice = cheems.addItem(DICE);
+        InventorySlot stick = cheems.addItem(STICK);
+
+        assertThatThrownBy(() -> cheems.equip(burger)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> cheems.use(stick)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> cheems.use(dice)).isInstanceOf(IllegalArgumentException.class);
+        assertThat(cheems.getInventory()).hasSize(3);
     }
 }
