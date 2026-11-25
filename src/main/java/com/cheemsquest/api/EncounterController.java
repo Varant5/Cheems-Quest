@@ -42,18 +42,21 @@ class EncounterController {
     }
 
     @PostMapping("/action")
-    @Operation(summary = "Use a skill",
-            description = "Plays one round: your skill, then every living enemy counterattacks. "
+    @Operation(summary = "Use a skill or an item",
+            description = "Plays one round: your skill or consumable, then every living enemy counterattacks. "
                     + "The `log` describes what happened. On defeat the character wakes up at home with full HP.")
     @ApiResponse(responseCode = "200", description = "Round played")
-    @ApiResponse(responseCode = "400", description = "Unknown skill or invalid target",
+    @ApiResponse(responseCode = "400", description = "Unknown skill, invalid target, or not exactly one of skill and item",
             content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class)))
-    @ApiResponse(responseCode = "404", description = "No such character",
+    @ApiResponse(responseCode = "404", description = "No such character or the item is not in the inventory",
             content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class)))
-    @ApiResponse(responseCode = "409", description = "No ongoing fight, target missing or already down, "
+    @ApiResponse(responseCode = "409", description = "No ongoing fight, target missing or already down, item not usable now, "
             + "or another action was played at the same time",
             content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class)))
     ActionView act(@PathVariable UUID id, @Valid @RequestBody ActionRequest request) {
+        if (request.item() != null && !request.item().isBlank()) {
+            return encounterService.useItem(id, request.item());
+        }
         return encounterService.act(id, request.skill(), request.target());
     }
 }

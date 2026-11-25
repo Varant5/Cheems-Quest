@@ -211,6 +211,6 @@ class ShopApiTest {
 
         use("CHEEMSBURGER")
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.detail").value("No time for snacks mid-fight. Such danger!"));
+                .andExpect(jsonPath("$.detail").value("Mid-fight? Use it as your fight action instead."));
     }
 }

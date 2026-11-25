@@ -5,6 +5,7 @@ import com.cheemsquest.engine.combat.BattleStatus;
 import com.cheemsquest.engine.combat.EnemyAi;
 import com.cheemsquest.engine.combat.RoundResult;
 import com.cheemsquest.engine.combat.WeightedEnemyAi;
+import com.cheemsquest.engine.item.ItemEffect;
 import com.cheemsquest.engine.model.Combatant;
 import com.cheemsquest.engine.narration.BattleNarrator;
 import com.cheemsquest.engine.random.WeightedTable;
@@ -17,6 +18,8 @@ import com.cheemsquest.persistence.Enemy;
 import com.cheemsquest.persistence.EnemySkill;
 import com.cheemsquest.persistence.GameCharacter;
 import com.cheemsquest.persistence.GameCharacterRepository;
+import com.cheemsquest.persistence.InventorySlot;
+import com.cheemsquest.persistence.Item;
 import com.cheemsquest.persistence.Location;
 import com.cheemsquest.persistence.LocationRepository;
 import com.cheemsquest.persistence.SpawnEntry;
@@ -52,18 +55,46 @@ public class EncounterService {
 
     @Transactional
     public ActionView act(UUID characterId, SkillType skillType, Integer targetPosition) {
-        GameCharacter character = characters.findById(characterId)
-                .orElseThrow(() -> new NotFoundException("Character " + characterId + " not found"));
-        Encounter encounter = findActive(characterId)
-                .orElseThrow(() -> new GameRuleException("Nothing to bonk here. Such peace."));
+        GameCharacter character = loadCharacter(characterId);
+        Encounter encounter = loadActive(characterId);
+        return playRound(character, encounter, skillType.skill(), targetPosition);
+    }
 
+    @Transactional
+    public ActionView useItem(UUID characterId, String itemCode) {
+        GameCharacter character = loadCharacter(characterId);
+        Encounter encounter = loadActive(characterId);
+        InventorySlot slot = character.unequippedCopies(itemCode).stream().findFirst()
+                .orElseThrow(() -> new NotFoundException("No " + itemCode + " in " + character.getName() + "'s inventory"));
+        Item item = slot.getItem();
+        if (!item.isConsumable()) {
+            throw new GameRuleException(item.getName() + " is not something you can use. Try a skill instead.");
+        }
+        Skill itemSkill = item.getEffect().inBattle(item.getName(), item.getEffectPower())
+                .orElseThrow(() -> new GameRuleException(item.getName() + " needs a calm moment. Use it outside of a fight."));
+        if (item.getEffect() == ItemEffect.HEAL && character.getCurrentHp() >= character.stats().maxHp()) {
+            throw new GameRuleException("Already at full HP. Save the " + item.getName() + " for later.");
+        }
+        if (item.getEffect() == ItemEffect.GUARANTEED_CRIT && encounter.isPlayerLucky()) {
+            throw new GameRuleException("Already feeling lucky. Save the " + item.getName() + " for later.");
+        }
+        character.removeItem(slot);
+        return playRound(character, encounter, itemSkill, null);
+    }
+
+    private ActionView playRound(GameCharacter character, Encounter encounter, Skill skill, Integer targetPosition) {
+        UUID characterId = character.getId();
         Combatant player = new Combatant(character.getName(), character.stats(), character.getCurrentHp());
+        if (encounter.isPlayerLucky()) {
+            player.bless();
+        }
         List<Combatant> foes = encounter.getEnemies().stream().map(EncounterService::toCombatant).toList();
         List<Integer> hpBefore = encounter.getEnemies().stream().map(EncounterEnemy::getCurrentHp).toList();
         Battle battle = new Battle(player, foes, aiFor(encounter, foes), rng);
 
-        RoundResult round = playRound(battle, skillType.skill(), foes, targetPosition);
+        RoundResult round = runRound(battle, skill, foes, targetPosition);
 
+        encounter.updatePlayerLuck(player.isLucky());
         character.updateHp(player.getHp());
         for (int i = 0; i < foes.size(); i++) {
             encounter.updateEnemyHp(i, foes.get(i).getHp());
@@ -97,6 +128,16 @@ public class EncounterService {
                 EncounterView.from(encounter));
     }
 
+    private GameCharacter loadCharacter(UUID characterId) {
+        return characters.findById(characterId)
+                .orElseThrow(() -> new NotFoundException("Character " + characterId + " not found"));
+    }
+
+    private Encounter loadActive(UUID characterId) {
+        return findActive(characterId)
+                .orElseThrow(() -> new GameRuleException("Nothing to bonk here. Such peace."));
+    }
+
     Optional<Encounter> findActive(UUID characterId) {
         return encounters.findByCharacterIdAndStatus(characterId, BattleStatus.PLAYER_TURN);
     }
@@ -120,7 +161,7 @@ public class EncounterService {
                 .orElseThrow(() -> new IllegalStateException("Home location " + GameRules.HOME_LOCATION + " is missing"));
     }
 
-    private static RoundResult playRound(Battle battle, Skill skill, List<Combatant> foes, Integer targetPosition) {
+    private static RoundResult runRound(Battle battle, Skill skill, List<Combatant> foes, Integer targetPosition) {
         try {
             if (targetPosition == null) {
                 return battle.act(skill);

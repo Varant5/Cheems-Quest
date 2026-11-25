@@ -9,7 +9,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public record EncounterView(UUID id, BattleStatus status, List<EnemyView> enemies) {
+public record EncounterView(UUID id, BattleStatus status, List<EnemyView> enemies, boolean lucky) {
 
     public record EnemyView(int position, String code, String name, int hp, int maxHp) {
     }
@@ -23,7 +23,7 @@ public record EncounterView(UUID id, BattleStatus status, List<EnemyView> enemie
                             e.getCurrentHp(), e.getEnemy().getMaxHp());
                 })
                 .toList();
-        return new EncounterView(encounter.getId(), encounter.getStatus(), views);
+        return new EncounterView(encounter.getId(), encounter.getStatus(), views, encounter.isPlayerLucky());
     }
 
     String enemyNames() {

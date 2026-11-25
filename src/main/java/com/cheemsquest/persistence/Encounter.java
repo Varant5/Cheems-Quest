@@ -51,6 +51,9 @@ public class Encounter {
     @OrderColumn(name = "position")
     private List<EncounterEnemy> enemies = new ArrayList<>();
 
+    @Column(name = "player_lucky", nullable = false)
+    private boolean playerLucky;
+
     @Column(name = "started_at", nullable = false)
     private Instant startedAt;
 
@@ -69,6 +72,10 @@ public class Encounter {
 
     public void updateEnemyHp(int position, int hp) {
         enemies.get(position).setCurrentHp(hp);
+    }
+
+    public void updatePlayerLuck(boolean lucky) {
+        this.playerLucky = lucky;
     }
 
     public void updateStatus(BattleStatus newStatus) {

@@ -141,6 +141,11 @@ public class GameCharacter {
         return earned;
     }
 
+    public void removeItem(InventorySlot slot) {
+        requireOwned(slot);
+        inventory.remove(slot);
+    }
+
     public void addGold(int amount) {
         if (amount < 0) {
             throw new IllegalArgumentException("gold gain cannot be negative, got " + amount);

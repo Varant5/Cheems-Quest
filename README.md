@@ -95,7 +95,7 @@ curl -s -X POST localhost:8080/api/characters/$ID/encounter/action \
 | GET | `/api/characters/{id}` | Stats and current location |
 | POST | `/api/characters/{id}/move` | Move `NORTH`, `SOUTH`, `EAST` or `WEST`, may start a fight |
 | GET | `/api/characters/{id}/encounter` | Current fight |
-| POST | `/api/characters/{id}/encounter/action` | Use `BONK`, `BITE` or `BONKING_SPIN`, optionally on a `target` |
+| POST | `/api/characters/{id}/encounter/action` | Use `BONK`, `BITE` or `BONKING_SPIN` (optionally on a `target`), or a consumable `item` |
 | GET | `/api/characters/{id}/inventory` | Items and stats with equipment |
 | POST | `/api/characters/{id}/inventory/{itemId}/equip` | Equip an item |
 | POST | `/api/characters/{id}/inventory/{itemId}/unequip` | Unequip an item |

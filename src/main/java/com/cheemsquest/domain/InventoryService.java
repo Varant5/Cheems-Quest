@@ -17,7 +17,7 @@ public class InventoryService {
 
     private static final String OUTFIT_MID_FIGHT = "No time to change outfits mid-fight. Such danger!";
     private static final String SHOPPING_MID_FIGHT = "No time for selling stuff mid-fight. Such danger!";
-    private static final String SNACKS_MID_FIGHT = "No time for snacks mid-fight. Such danger!";
+    private static final String ITEM_MID_FIGHT = "Mid-fight? Use it as your fight action instead.";
 
     private final GameCharacterRepository characters;
     private final EncounterService encounterService;
@@ -40,7 +40,7 @@ public class InventoryService {
 
     @Transactional
     public InventoryView use(UUID characterId, UUID slotId) {
-        GameCharacter character = loadOutsideOfFight(characterId, SNACKS_MID_FIGHT);
+        GameCharacter character = loadOutsideOfFight(characterId, ITEM_MID_FIGHT);
         InventorySlot slot = slot(character, slotId);
         Item item = slot.getItem();
         if (!item.isConsumable()) {
