@@ -21,6 +21,7 @@ const state = {
     map: null,
     encounter: null,
     target: null,
+    shop: null,
     busy: false
 };
 
@@ -272,6 +273,10 @@ function renderLocation() {
     for (const button of document.querySelectorAll("#compass button")) {
         button.disabled = Boolean(state.encounter) || !location.exits.includes(button.dataset.dir);
     }
+    $("#shop-tab").hidden = !location.shop;
+    if (!location.shop && !$("#shop").hidden) {
+        showPanel("inventory");
+    }
     renderMap();
 }
 
@@ -417,7 +422,7 @@ function lineTone(line) {
     const name = state.character ? state.character.name : "";
     if (/VICTORY|QUEST COMPLETE/.test(line)) return "good";
     if (/LEVEL UP/.test(line)) return "level";
-    if (/^Loot!| receives /.test(line)) return "loot";
+    if (/^Loot!| receives | finds \d+ gold/.test(line)) return "loot";
     if (/faints|DEFEAT/.test(line)) return "bad";
     if (line.replace(/^CRITICAL! /, "").startsWith(`${name} loses`)) return "hurt";
     if (/ loses \d+ HP| is down!/.test(line)) return "hit";
@@ -486,8 +491,8 @@ function renderInventory(inventory) {
         gold: inventory.gold
     });
     renderCharacter();
-    const items = [...inventory.items].sort((a, b) =>
-        (b.equipped - a.equipped) || (SLOT_ORDER.indexOf(a.slot) - SLOT_ORDER.indexOf(b.slot)));
+    const order = (item) => (item.slot ? SLOT_ORDER.indexOf(item.slot) : SLOT_ORDER.length);
+    const items = [...inventory.items].sort((a, b) => (b.equipped - a.equipped) || (order(a) - order(b)));
     const fighting = Boolean(state.encounter);
     const button = (className, textContent, onclick) =>
         el("button", {type: "button", className, textContent, disabled: fighting, onclick});
@@ -496,11 +501,16 @@ function renderInventory(inventory) {
             el("span", {className: `name rarity-${item.rarity}`, textContent: item.name},
                 item.quantity > 1 ? el("span", {className: "quantity", textContent: ` ×${item.quantity}`}) : null),
             el("span", {className: "actions"},
-                button(item.equipped ? "secondary" : "primary", item.equipped ? "Unequip" : "Equip", () => toggleItem(item)),
+                item.effect
+                    ? button("primary", "Use", () => useItem(item))
+                    : button(item.equipped ? "secondary" : "primary", item.equipped ? "Unequip" : "Equip", () => toggleItem(item)),
                 item.equipped ? null : button("secondary", "Sell", () => sellItem(item, 1)),
                 item.quantity > 1 ? button("secondary", "Sell all", () => sellItem(item, item.quantity)) : null)),
         el("p", {textContent: item.description}),
-        el("div", {className: "meta", textContent: `${item.slot} · ${item.rarity} · ${bonusText(item.bonus)} · ${item.sellValue} gold`}))));
+        el("div", {className: "meta", textContent: `${itemMeta(item)} · sells for ${item.sellValue} gold`}))));
+    if (state.shop && !$("#shop").hidden) {
+        renderShop(state.shop);
+    }
 }
 
 async function sellItem(item, quantity) {
@@ -558,6 +568,71 @@ function showPanel(panel) {
     }
     $("#inventory").hidden = panel !== "inventory";
     $("#quests").hidden = panel !== "quests";
+    $("#shop").hidden = panel !== "shop";
+    if (panel === "shop") {
+        guarded(async () => renderShop(await api("GET", `/characters/${state.character.id}/shop`)));
+    }
+}
+
+function effectText(item) {
+    switch (item.effect) {
+        case "HEAL": return `heals ${item.effectPower} HP`;
+        case "PERMANENT_ATTACK": return `+${item.effectPower} ATK forever`;
+        case "GUARANTEED_CRIT": return "next attack crits";
+        default: return "";
+    }
+}
+
+function itemMeta(item) {
+    return item.effect
+        ? `CONSUMABLE · ${item.rarity} · ${effectText(item)}`
+        : `${item.slot} · ${item.rarity} · ${bonusText(item.bonus)}`;
+}
+
+function renderShop(shop) {
+    state.shop = shop;
+    const gold = state.character.gold;
+    $("#shop").replaceChildren(
+        el("li", {className: "shop-header muted small", textContent: `${shop.location} merchant. Such deals. You have ${gold} gold.`}),
+        ...shop.offers.map((offer) => el("li", {className: "item"},
+            el("div", {className: "row"},
+                el("span", {className: `name rarity-${offer.rarity}`, textContent: offer.name}),
+                el("span", {className: "actions"},
+                    el("span", {className: "price", textContent: `${offer.price} gold`}),
+                    el("button", {
+                        type: "button",
+                        className: "primary",
+                        textContent: "Buy",
+                        disabled: gold < offer.price,
+                        title: gold < offer.price ? "Much poor" : "",
+                        onclick: () => buyItem(offer)
+                    }))),
+            el("p", {textContent: offer.description}),
+            el("div", {className: "meta", textContent: itemMeta(offer)}))));
+}
+
+async function buyItem(offer) {
+    await guarded(async () => {
+        const inventory = await api("POST", `/characters/${state.character.id}/shop/buy`, {code: offer.code, quantity: 1});
+        renderInventory(inventory);
+        log(`${state.character.name} buys ${offer.name} for ${offer.price} gold.`, "loot");
+    });
+}
+
+async function useItem(item) {
+    await guarded(async () => {
+        const before = {hp: state.character.hp, attack: state.character.attack};
+        const inventory = await api("POST", `/characters/${state.character.id}/inventory/${item.id}/use`);
+        renderInventory(inventory);
+        const name = state.character.name;
+        if (item.effect === "HEAL") {
+            log(`${name} eats ${item.name} and heals ${inventory.hp - before.hp} HP. Much yum.`, "good");
+        } else if (item.effect === "PERMANENT_ATTACK") {
+            log(`${name} invests in ${item.name}. ATK ${before.attack} → ${inventory.attack}. To the moon!`, "level");
+        } else {
+            log(`${name} uses ${item.name}.`, "loot");
+        }
+    });
 }
 
 function onKey(event) {

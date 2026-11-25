@@ -26,7 +26,8 @@ POST /api/characters/{id}/encounter/action  {"skill": "BONK"}
 - **World map** of five locations with random encounters and a safe home where Cheems naps to full HP.
 - **Progression**: experience, levels and stat growth.
 - **Items and equipment** in four slots, with rarities from COMMON to LEGENDARY.
-- **Weighted loot tables** with a drop chance per enemy.
+- **Weighted loot tables** with a drop chance per enemy, plus gold drops.
+- **Gold economy**: sell loot, buy Cheemsburgers, Lucky Dice and Doge Coins in the doghouse shop.
 - **Quests** with kill objectives and EXP or item rewards.
 - **Accounts** with JWT authentication. Players can only touch their own characters.
 - **Browser client**: a single static page in plain HTML, CSS and JavaScript, served by Spring Boot itself.
@@ -98,7 +99,10 @@ curl -s -X POST localhost:8080/api/characters/$ID/encounter/action \
 | GET | `/api/characters/{id}/inventory` | Items and stats with equipment |
 | POST | `/api/characters/{id}/inventory/{itemId}/equip` | Equip an item |
 | POST | `/api/characters/{id}/inventory/{itemId}/unequip` | Unequip an item |
+| POST | `/api/characters/{id}/inventory/{itemId}/use` | Use a consumable (Cheemsburger, Doge Coin) |
 | POST | `/api/characters/{id}/inventory/sell` | Sell unequipped copies of an item for gold |
+| GET | `/api/characters/{id}/shop` | Offers of the shop in the current location |
+| POST | `/api/characters/{id}/shop/buy` | Buy items for gold |
 | GET | `/api/characters/{id}/quests` | Quest log |
 | POST | `/api/characters/{id}/quests/{code}/accept` | Accept a quest |
 

@@ -681,3 +681,13 @@ kbd {
         grid-template-columns: 1fr;
     }
 }
+
+.item .price {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--legendary);
+}
+
+.shop-header {
+    padding: 0 2px 4px;
+}
