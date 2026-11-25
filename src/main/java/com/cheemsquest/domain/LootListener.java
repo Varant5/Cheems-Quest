@@ -24,10 +24,11 @@ class LootListener {
     void onEnemyDefeated(EnemyDefeatedEvent event) {
         Enemy enemy = enemies.findById(event.enemyCode())
                 .orElseThrow(() -> new IllegalStateException("Enemy " + event.enemyCode() + " is missing"));
+        GameCharacter character = characters.findById(event.characterId())
+                .orElseThrow(() -> new NotFoundException("Character " + event.characterId() + " not found"));
 
+        Rewards.grantGold(character, enemy.goldDrop().roll(rng), event.log());
         enemy.lootTable().roll(rng).ifPresent(item -> {
-            GameCharacter character = characters.findById(event.characterId())
-                    .orElseThrow(() -> new NotFoundException("Character " + event.characterId() + " not found"));
             character.addItem(item);
             event.log().add("Loot! " + event.enemyName() + " drops " + item.getName()
                     + " (" + item.getRarity() + ").");

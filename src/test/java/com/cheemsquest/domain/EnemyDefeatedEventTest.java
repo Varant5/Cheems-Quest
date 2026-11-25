@@ -71,9 +71,11 @@ class EnemyDefeatedEventTest {
         assertThat(cheems.stats().maxHp()).isEqualTo(81);
         assertThat(cheems.getInventory()).extracting(slot -> slot.getItem().getCode())
                 .containsExactly("VERY_STICK", "LEGENDARY_BONE");
+        assertThat(cheems.getGold()).isEqualTo(58);
         assertThat(log.lines()).containsExactly(
                 "Cheems gains 160 EXP.",
                 "LEVEL UP! Cheems is now level 3. Much stronger!",
+                "Cheems finds 58 gold.",
                 "Loot! Buff Doge drops Legendary Bone (LEGENDARY).");
     }
 
@@ -85,6 +87,7 @@ class EnemyDefeatedEventTest {
 
         assertThat(log.lines()).containsExactly(
                 "Cheems gains 20 EXP.",
+                "Cheems finds 6 gold.",
                 "Loot! Wild Karen Doge drops Karen's Wig (RARE).");
         InventorySlot wig = cheems().getInventory().getLast();
         assertThat(wig.getItem().getCode()).isEqualTo("KARENS_WIG");
@@ -103,6 +106,7 @@ class EnemyDefeatedEventTest {
         assertThat(third.lines()).containsExactly(
                 "Cheems gains 20 EXP.",
                 "LEVEL UP! Cheems is now level 2. Much stronger!",
+                "Cheems finds 10 gold.",
                 "Quest progress: Karen Problems 3/3.",
                 "QUEST COMPLETE! Karen Problems. Much hero. Very reward.",
                 "Cheems gains 60 EXP.",
@@ -113,7 +117,7 @@ class EnemyDefeatedEventTest {
                 .satisfies(quest -> assertThat(quest.status()).isEqualTo(QuestStatus.COMPLETED));
 
         GameLog fourth = defeat("KAREN_DOGE", "Wild Karen Doge", 20);
-        assertThat(fourth.lines()).containsExactly("Cheems gains 20 EXP.");
+        assertThat(fourth.lines()).containsExactly("Cheems gains 20 EXP.", "Cheems finds 10 gold.");
     }
 
     @Test
@@ -122,7 +126,7 @@ class EnemyDefeatedEventTest {
 
         GameLog log = defeat("LIL_DOGE", "Neighbor's Lil Doge", 8);
 
-        assertThat(log.lines()).containsExactly("Cheems gains 8 EXP.");
+        assertThat(log.lines()).containsExactly("Cheems gains 8 EXP.", "Cheems finds 5 gold.");
         assertThat(questService.list(characterId).getFirst().kills()).isZero();
     }
 
@@ -130,15 +134,16 @@ class EnemyDefeatedEventTest {
     void questsDoNotProgressBeforeBeingAccepted() {
         GameLog log = defeat("KAREN_DOGE", "Wild Karen Doge", 20);
 
-        assertThat(log.lines()).containsExactly("Cheems gains 20 EXP.");
+        assertThat(log.lines()).containsExactly("Cheems gains 20 EXP.", "Cheems finds 10 gold.");
         assertThat(questService.list(characterId).getFirst().status()).isEqualTo(QuestStatus.AVAILABLE);
     }
 
     @Test
-    void karenDropsNothingWhenLuckIsBad() {
+    void karenDropsOnlyGoldWhenLuckIsBad() {
         GameLog log = defeat("KAREN_DOGE", "Wild Karen Doge", 20);
 
-        assertThat(log.lines()).containsExactly("Cheems gains 20 EXP.");
+        assertThat(log.lines()).containsExactly("Cheems gains 20 EXP.", "Cheems finds 10 gold.");
         assertThat(cheems().getInventory()).hasSize(1);
+        assertThat(cheems().getGold()).isEqualTo(10);
     }
 }

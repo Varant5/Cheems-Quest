@@ -1,5 +1,6 @@
 package com.cheemsquest.persistence;
 
+import com.cheemsquest.engine.loot.GoldDrop;
 import com.cheemsquest.engine.loot.LootTable;
 import com.cheemsquest.engine.model.Stats;
 import com.cheemsquest.engine.random.WeightedTable;
@@ -47,6 +48,12 @@ public class Enemy {
     @Column(name = "loot_chance", nullable = false)
     private double lootChance;
 
+    @Column(name = "gold_min", nullable = false)
+    private int goldMin;
+
+    @Column(name = "gold_max", nullable = false)
+    private int goldMax;
+
     @ElementCollection
     @CollectionTable(name = "enemy_skill", joinColumns = @JoinColumn(name = "enemy_code"))
     @OrderBy("weight DESC")
@@ -56,6 +63,10 @@ public class Enemy {
     @CollectionTable(name = "enemy_loot", joinColumns = @JoinColumn(name = "enemy_code"))
     @OrderBy("weight DESC")
     private List<LootEntry> loot = new ArrayList<>();
+
+    public GoldDrop goldDrop() {
+        return new GoldDrop(goldMin, goldMax);
+    }
 
     public Stats stats() {
         return new Stats(maxHp, attack, defense);

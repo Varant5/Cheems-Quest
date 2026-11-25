@@ -16,6 +16,13 @@ final class Rewards {
         }
     }
 
+    static void grantGold(GameCharacter character, int amount, GameLog log) {
+        if (amount > 0) {
+            character.addGold(amount);
+            log.add(character.getName() + " finds " + amount + " gold.");
+        }
+    }
+
     static void grantItem(GameCharacter character, Item item, GameLog log) {
         character.addItem(item);
         log.add(character.getName() + " receives " + item.getName() + " (" + item.getRarity() + ").");
