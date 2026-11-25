@@ -22,6 +22,7 @@ const state = {
     encounter: null,
     target: null,
     shop: null,
+    inventory: null,
     busy: false
 };
 
@@ -386,6 +387,7 @@ function setEncounter(encounter) {
             state.target = alive.length ? alive[0].position : null;
         }
         renderEnemies();
+        renderCombatItems();
     } else {
         state.target = null;
     }
@@ -421,7 +423,8 @@ function renderEnemies() {
 function lineTone(line) {
     const name = state.character ? state.character.name : "";
     if (/VICTORY|QUEST COMPLETE/.test(line)) return "good";
-    if (/LEVEL UP/.test(line)) return "level";
+    if (/LEVEL UP| feels lucky/.test(line)) return "level";
+    if (/ heals \d+ HP/.test(line)) return "good";
     if (/^Loot!| receives | finds \d+ gold/.test(line)) return "loot";
     if (/faints|DEFEAT/.test(line)) return "bad";
     if (line.replace(/^CRITICAL! /, "").startsWith(`${name} loses`)) return "hurt";
@@ -460,21 +463,65 @@ async function act(skill) {
     if (!state.encounter) {
         return;
     }
+    const body = {skill};
+    if (skill !== "BONKING_SPIN" && state.target !== null) {
+        body.target = state.target;
+    }
+    await guarded(() => playAction(body));
+}
+
+async function actWithItem(item) {
+    if (!state.encounter) {
+        return;
+    }
     await guarded(async () => {
-        const body = {skill};
-        if (skill !== "BONKING_SPIN" && state.target !== null) {
-            body.target = state.target;
-        }
-        const result = await api("POST", `/characters/${state.character.id}/encounter/action`, body);
-        result.log.forEach((line, index) => log(line, index === 0 ? `${lineTone(line)} turn` : lineTone(line)));
-        state.character.hp = result.hp;
-        state.character.maxHp = result.maxHp;
-        renderCharacter();
-        setEncounter(result.encounter);
-        if (result.status !== "PLAYER_TURN") {
-            await refreshGame();
+        const status = await playAction({item: item.code});
+        if (status === "PLAYER_TURN") {
+            renderInventory(await api("GET", `/characters/${state.character.id}/inventory`));
         }
     });
+}
+
+async function playAction(body) {
+    const result = await api("POST", `/characters/${state.character.id}/encounter/action`, body);
+    result.log.forEach((line, index) => log(line, index === 0 ? `${lineTone(line)} turn` : lineTone(line)));
+    state.character.hp = result.hp;
+    state.character.maxHp = result.maxHp;
+    renderCharacter();
+    setEncounter(result.encounter);
+    if (result.status !== "PLAYER_TURN") {
+        await refreshGame();
+    }
+    return result.status;
+}
+
+function combatItems() {
+    const items = state.inventory ? state.inventory.items : [];
+    return items.filter((item) => item.effect === "HEAL" || item.effect === "GUARANTEED_CRIT");
+}
+
+function renderCombatItems() {
+    if (!state.encounter) {
+        return;
+    }
+    $("#lucky").hidden = !state.encounter.lucky;
+    const items = combatItems();
+    $("#combat-items").hidden = items.length === 0;
+    $("#combat-items").replaceChildren(...items.map((item, index) => {
+        const fullHp = item.effect === "HEAL" && state.character.hp >= state.character.maxHp;
+        const alreadyLucky = item.effect === "GUARANTEED_CRIT" && state.encounter.lucky;
+        return el("button", {
+                type: "button",
+                className: "combat-item",
+                disabled: fullHp || alreadyLucky,
+                title: fullHp ? "Already at full HP" : alreadyLucky ? "Already feeling lucky" : "Uses your turn",
+                onclick: () => actWithItem(item)
+            },
+            index < 6 ? el("kbd", {textContent: String(index + 4)}) : null,
+            ` ${item.name} `,
+            el("span", {className: "quantity", textContent: `×${item.quantity}`}),
+            el("small", {textContent: effectText(item)}));
+    }));
 }
 
 function bonusText(bonus) {
@@ -486,6 +533,7 @@ function bonusText(bonus) {
 }
 
 function renderInventory(inventory) {
+    state.inventory = inventory;
     Object.assign(state.character, {
         hp: inventory.hp, maxHp: inventory.maxHp, attack: inventory.attack, defense: inventory.defense,
         gold: inventory.gold
@@ -508,6 +556,7 @@ function renderInventory(inventory) {
                 item.quantity > 1 ? button("secondary", "Sell all", () => sellItem(item, item.quantity)) : null)),
         el("p", {textContent: item.description}),
         el("div", {className: "meta", textContent: `${itemMeta(item)} · sells for ${item.sellValue} gold`}))));
+    renderCombatItems();
     if (state.shop && !$("#shop").hidden) {
         renderShop(state.shop);
     }
@@ -647,6 +696,14 @@ function onKey(event) {
     } else if (skill) {
         event.preventDefault();
         act(skill);
+    } else if (state.encounter && /^[4-9]$/.test(event.key)) {
+        const button = $("#combat-items").children[Number(event.key) - 4];
+        if (button) {
+            event.preventDefault();
+            if (!button.disabled) {
+                button.click();
+            }
+        }
     }
 }
 

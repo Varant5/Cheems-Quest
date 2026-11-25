@@ -42,7 +42,8 @@ docker compose up --build
 ```
 
 Open <http://localhost:8080>, register and play in the browser. Move by clicking the map, with the compass or `WASD` / arrow keys,
-fight with `1` `2` `3`, click an enemy to target it.
+fight with `1` `2` `3`, use a Cheemsburger or Lucky Dice mid-fight with `4`+, click an enemy to target it.
+Buy consumables in the doghouse shop.
 
 Prefer raw HTTP? Swagger UI lives at <http://localhost:8080/swagger-ui.html>: register, click **Authorize**,
 paste the token and call the endpoints directly.

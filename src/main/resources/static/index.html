@@ -95,7 +95,7 @@
 
         <div class="column center">
             <div class="card combat" id="combat" hidden>
-                <h2>Fight!</h2>
+                <h2>Fight! <span id="lucky" class="lucky" hidden title="Your next attack is a sure crit">🍀 Lucky</span></h2>
                 <ul id="enemies" class="enemies"></ul>
                 <div class="skills">
                     <button type="button" class="skill" data-skill="BONK">
@@ -108,6 +108,7 @@
                         <kbd>3</kbd> Bonking Spin <small>hits everyone</small>
                     </button>
                 </div>
+                <div id="combat-items" class="combat-items"></div>
             </div>
             <div class="card log-card">
                 <h2>Adventure log</h2>

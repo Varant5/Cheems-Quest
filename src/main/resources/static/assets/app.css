@@ -691,3 +691,37 @@ kbd {
 .shop-header {
     padding: 0 2px 4px;
 }
+
+.combat-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.combat-item {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px dashed var(--loot);
+    background: transparent;
+    font-weight: 700;
+}
+
+.combat-item small {
+    font-weight: 400;
+    color: var(--muted);
+}
+
+.combat-item:hover:not(:disabled) {
+    background: var(--panel-2);
+}
+
+.combat .lucky {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--good);
+    margin-left: 8px;
+}
