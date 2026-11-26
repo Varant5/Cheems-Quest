@@ -28,7 +28,7 @@ POST /api/characters/{id}/encounter/action  {"skill": "BONK"}
 - **Items and equipment** in four slots, with rarities from COMMON to LEGENDARY.
 - **Weighted loot tables** with a drop chance per enemy, plus gold drops.
 - **Gold economy**: sell loot, buy Cheemsburgers, Lucky Dice and Doge Coins in the doghouse shop.
-- **Quests** with kill objectives and EXP or item rewards.
+- **Quests** to defeat enemies, visit places or find items, with EXP or item rewards and follow-up quests that unlock in a chain.
 - **Accounts** with JWT authentication. Players can only touch their own characters.
 - **Browser client**: a single static page in plain HTML, CSS and JavaScript, served by Spring Boot itself.
 - **OpenAPI docs** with Swagger UI.
@@ -144,8 +144,10 @@ The layers are enforced by [ArchUnit tests](src/test/java/com/cheemsquest/Archit
   rejects illegal moves such as acting after the fight is over.
 - **Stateless encounters.** The battle is rebuilt from the database on every request and saved with optimistic
   locking, so two parallel actions cannot both hit the same enemy.
-- **Spring events for rewards.** Winning a fight publishes one `EnemyDefeatedEvent`. Separate ordered listeners
+- **Spring events for rewards and quests.** Winning a fight publishes one `EnemyDefeatedEvent`. Separate ordered listeners
   grant EXP, roll loot and count quest kills, so adding a new reward type does not touch combat code.
+  Moving and receiving items publish `LocationEnteredEvent` and `ItemAcquiredEvent`, and one quest listener
+  turns all three into progress for typed objectives.
 - **Reusable weighted tables.** One `WeightedTable` drives enemy AI, encounter spawns and loot drops.
 - **Data-driven world.** Locations, exits, enemies, items, loot and quests are seeded by Flyway migrations.
   The map has no stored coordinates: `WorldLayout` walks the exits from home and places every location on a grid,
@@ -184,7 +186,12 @@ sequenceDiagram
 | Soggy Shibe | 28 | Much Swamp | Soggy Raincoat, Spiky Collar |
 | Buff Doge | 120 | Buff Doge Tower | Buff Harness, Stonks Helmet, Legendary Bone |
 
-Quest **Karen Problems**: bonk 3 Wild Karen Doges for 60 EXP and a Stonks Helmet.
+| Quest | Objective | Requires | Reward |
+|---|---|---|---|
+| Karen Problems | Defeat 3 Wild Karen Doges | - | 60 EXP, Stonks Helmet |
+| Never Skip Leg Day | Defeat Buff Doge | Karen Problems | 150 EXP, Doge Coin |
+| Much Mystery Smell | Visit Much Swamp | - | 25 EXP, Cheemsburger |
+| Manager Material | Find 2 Karen's Wigs | - | 80 EXP, Spiky Collar |
 
 ## Tech stack
 

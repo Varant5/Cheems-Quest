@@ -43,7 +43,7 @@ class QuestApiTest {
     void listsAvailableQuest() throws Exception {
         mvc.perform(get("/api/characters/{id}/quests", id))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(3))
+                .andExpect(jsonPath("$.length()").value(4))
                 .andExpect(jsonPath("$[0].code").value("KAREN_PROBLEMS"))
                 .andExpect(jsonPath("$[0].status").value("AVAILABLE"))
                 .andExpect(jsonPath("$[0].objectiveType").value("DEFEAT_ENEMY"))
@@ -55,23 +55,43 @@ class QuestApiTest {
     }
 
     @Test
+    void followUpQuestIsLockedUntilItsPrerequisiteIsDone() throws Exception {
+        mvc.perform(get("/api/characters/{id}/quests", id))
+                .andExpect(jsonPath("$[0].requires").doesNotExist())
+                .andExpect(jsonPath("$[1].code").value("LEG_DAY"))
+                .andExpect(jsonPath("$[1].status").value("LOCKED"))
+                .andExpect(jsonPath("$[1].requires").value("Karen Problems"))
+                .andExpect(jsonPath("$[1].target").value("Buff Doge"));
+    }
+
+    @Test
+    void lockedQuestCannotBeAccepted() throws Exception {
+        mvc.perform(post("/api/characters/{id}/quests/{code}/accept", id, "KAREN_PROBLEMS"));
+
+        mvc.perform(post("/api/characters/{id}/quests/{code}/accept", id, "LEG_DAY"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.detail")
+                        .value("Quest Never Skip Leg Day is locked. Finish Karen Problems first. Such patience."));
+    }
+
+    @Test
     void listsVisitQuest() throws Exception {
         mvc.perform(get("/api/characters/{id}/quests", id))
-                .andExpect(jsonPath("$[1].code").value("MYSTERY_SMELL"))
-                .andExpect(jsonPath("$[1].objectiveType").value("VISIT_LOCATION"))
-                .andExpect(jsonPath("$[1].target").value("Much Swamp"))
-                .andExpect(jsonPath("$[1].requiredAmount").value(1))
-                .andExpect(jsonPath("$[1].rewardItem").value("Cheemsburger"));
+                .andExpect(jsonPath("$[2].code").value("MYSTERY_SMELL"))
+                .andExpect(jsonPath("$[2].objectiveType").value("VISIT_LOCATION"))
+                .andExpect(jsonPath("$[2].target").value("Much Swamp"))
+                .andExpect(jsonPath("$[2].requiredAmount").value(1))
+                .andExpect(jsonPath("$[2].rewardItem").value("Cheemsburger"));
     }
 
     @Test
     void listsCollectQuest() throws Exception {
         mvc.perform(get("/api/characters/{id}/quests", id))
-                .andExpect(jsonPath("$[2].code").value("WIG_HUNT"))
-                .andExpect(jsonPath("$[2].objectiveType").value("COLLECT_ITEM"))
-                .andExpect(jsonPath("$[2].target").value("Karen's Wig"))
-                .andExpect(jsonPath("$[2].requiredAmount").value(2))
-                .andExpect(jsonPath("$[2].rewardItem").value("Spiky Collar"));
+                .andExpect(jsonPath("$[3].code").value("WIG_HUNT"))
+                .andExpect(jsonPath("$[3].objectiveType").value("COLLECT_ITEM"))
+                .andExpect(jsonPath("$[3].target").value("Karen's Wig"))
+                .andExpect(jsonPath("$[3].requiredAmount").value(2))
+                .andExpect(jsonPath("$[3].rewardItem").value("Spiky Collar"));
     }
 
     @Test
@@ -87,8 +107,8 @@ class QuestApiTest {
                 .andExpect(jsonPath("$.log[3]").value("Cheems receives Cheemsburger (COMMON)."));
 
         mvc.perform(get("/api/characters/{id}/quests", id))
-                .andExpect(jsonPath("$[1].progress").value(1))
-                .andExpect(jsonPath("$[1].status").value("COMPLETED"));
+                .andExpect(jsonPath("$[2].progress").value(1))
+                .andExpect(jsonPath("$[2].status").value("COMPLETED"));
         mvc.perform(get("/api/characters/{id}", id))
                 .andExpect(jsonPath("$.experience").value(25));
     }
@@ -99,7 +119,7 @@ class QuestApiTest {
         move("WEST").andExpect(jsonPath("$.log").isEmpty());
 
         mvc.perform(get("/api/characters/{id}/quests", id))
-                .andExpect(jsonPath("$[1].status").value("AVAILABLE"));
+                .andExpect(jsonPath("$[2].status").value("AVAILABLE"));
     }
 
     private ResultActions move(String direction) throws Exception {

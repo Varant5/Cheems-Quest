@@ -653,6 +653,8 @@ kbd {
 .badge.ACTIVE { color: var(--accent); }
 .badge.COMPLETED { color: var(--good); }
 .badge.AVAILABLE { color: var(--muted); }
+.badge.LOCKED { color: var(--muted); }
+#quests .item.locked { opacity: 0.6; }
 
 @media (max-width: 1080px) {
     .game {

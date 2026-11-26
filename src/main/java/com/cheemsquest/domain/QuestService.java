@@ -1,5 +1,6 @@
 package com.cheemsquest.domain;
 
+import com.cheemsquest.engine.quest.QuestStatus;
 import com.cheemsquest.persistence.GameCharacter;
 import com.cheemsquest.persistence.GameCharacterRepository;
 import com.cheemsquest.persistence.Quest;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -28,13 +30,15 @@ public class QuestService {
     @Transactional(readOnly = true)
     public List<QuestView> list(UUID characterId) {
         load(characterId);
-        Map<String, QuestProgress> progressByQuest = progresses.findByCharacterId(characterId).stream()
-                .collect(Collectors.toMap(progress -> progress.getQuest().getCode(), Function.identity()));
+        Map<String, QuestProgress> progressByQuest = progressByQuest(characterId);
 
         return quests.findAll(Sort.by("code")).stream()
                 .map(quest -> {
                     QuestProgress progress = progressByQuest.get(quest.getCode());
-                    return progress == null ? QuestView.available(quest) : QuestView.from(progress);
+                    if (progress != null) {
+                        return QuestView.from(progress);
+                    }
+                    return isUnlocked(quest, progressByQuest) ? QuestView.available(quest) : QuestView.locked(quest);
                 })
                 .toList();
     }
@@ -44,13 +48,30 @@ public class QuestService {
         GameCharacter character = load(characterId);
         Quest quest = quests.findById(questCode)
                 .orElseThrow(() -> new NotFoundException("Quest " + questCode + " not found"));
-        boolean alreadyTaken = progresses.findByCharacterId(characterId).stream()
-                .anyMatch(progress -> progress.getQuest().getCode().equals(questCode));
-        if (alreadyTaken) {
+        Map<String, QuestProgress> progressByQuest = progressByQuest(characterId);
+        if (progressByQuest.containsKey(questCode)) {
             throw new GameRuleException("Quest " + quest.getName() + " was already accepted. Such eager.");
+        }
+        if (!isUnlocked(quest, progressByQuest)) {
+            throw new GameRuleException("Quest " + quest.getName() + " is locked. Finish "
+                    + quest.prerequisite().orElseThrow().getName() + " first. Such patience.");
         }
 
         return QuestView.from(progresses.save(new QuestProgress(character, quest)));
+    }
+
+    private Map<String, QuestProgress> progressByQuest(UUID characterId) {
+        return progresses.findByCharacterId(characterId).stream()
+                .collect(Collectors.toMap(progress -> progress.getQuest().getCode(), Function.identity()));
+    }
+
+    private static boolean isUnlocked(Quest quest, Map<String, QuestProgress> progressByQuest) {
+        Optional<Quest> required = quest.prerequisite();
+        if (required.isEmpty()) {
+            return true;
+        }
+        QuestProgress progress = progressByQuest.get(required.get().getCode());
+        return progress != null && progress.getStatus() == QuestStatus.COMPLETED;
     }
 
     private GameCharacter load(UUID characterId) {

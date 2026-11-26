@@ -594,14 +594,19 @@ function renderQuests(quests) {
         const progress = el("div", {className: "bar"}, el("div", {className: "fill exp"}));
         progress.firstChild.style.width = `${(quest.progress / quest.requiredAmount) * 100}%`;
         const reward = [`${quest.rewardExp} EXP`, quest.rewardItem].filter(Boolean).join(" + ");
-        return el("li", {className: "item"},
+        const started = quest.status === "ACTIVE" || quest.status === "COMPLETED";
+        const objective = `${OBJECTIVE_VERBS[quest.objectiveType]} ${quest.target}: ${quest.progress}/${quest.requiredAmount}`;
+        const meta = quest.status === "LOCKED"
+            ? `Requires: ${quest.requires} · Reward: ${reward}`
+            : `${objective} · Reward: ${reward}`;
+        return el("li", {className: `item${quest.status === "LOCKED" ? " locked" : ""}`},
             el("div", {className: "row"},
                 el("span", {className: "name", textContent: quest.name}),
                 el("span", {className: `badge ${quest.status}`, textContent: quest.status})),
             el("p", {textContent: quest.description}),
-            quest.status === "AVAILABLE" ? null : progress,
+            started ? progress : null,
             el("div", {className: "row meta"},
-                el("span", {textContent: `${OBJECTIVE_VERBS[quest.objectiveType]} ${quest.target}: ${quest.progress}/${quest.requiredAmount} · Reward: ${reward}`}),
+                el("span", {textContent: meta}),
                 quest.status === "AVAILABLE"
                     ? el("button", {type: "button", className: "primary", textContent: "Accept", onclick: () => acceptQuest(quest)})
                     : null));

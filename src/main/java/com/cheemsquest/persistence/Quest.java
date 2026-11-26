@@ -60,8 +60,16 @@ public class Quest {
     @JoinColumn(name = "reward_item_code")
     private Item rewardItem;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "prerequisite_code")
+    private Quest prerequisite;
+
     public Optional<Item> rewardItem() {
         return Optional.ofNullable(rewardItem);
+    }
+
+    public Optional<Quest> prerequisite() {
+        return Optional.ofNullable(prerequisite);
     }
 
     public QuestObjective objective() {

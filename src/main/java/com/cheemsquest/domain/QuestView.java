@@ -16,7 +16,12 @@ public record QuestView(
         int progress,
         QuestStatus status,
         int rewardExp,
-        String rewardItem) {
+        String rewardItem,
+        String requires) {
+
+    static QuestView locked(Quest quest) {
+        return of(quest, 0, QuestStatus.LOCKED);
+    }
 
     static QuestView available(Quest quest) {
         return of(quest, 0, QuestStatus.AVAILABLE);
@@ -29,6 +34,7 @@ public record QuestView(
     private static QuestView of(Quest quest, int progress, QuestStatus status) {
         return new QuestView(quest.getCode(), quest.getName(), quest.getDescription(),
                 quest.getObjectiveType(), quest.targetName(), quest.getRequiredAmount(), progress, status,
-                quest.getRewardExp(), quest.rewardItem().map(Item::getName).orElse(null));
+                quest.getRewardExp(), quest.rewardItem().map(Item::getName).orElse(null),
+                quest.prerequisite().map(Quest::getName).orElse(null));
     }
 }

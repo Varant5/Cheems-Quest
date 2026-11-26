@@ -121,6 +121,29 @@ class EnemyDefeatedEventTest {
     }
 
     @Test
+    void finishingKarenProblemsUnlocksLegDay() {
+        questService.accept(characterId, "KAREN_PROBLEMS");
+        for (int i = 0; i < 3; i++) {
+            defeat("KAREN_DOGE", "Wild Karen Doge", 20);
+        }
+
+        assertThat(questService.list(characterId)).filteredOn(quest -> quest.code().equals("LEG_DAY"))
+                .singleElement().satisfies(quest -> assertThat(quest.status()).isEqualTo(QuestStatus.AVAILABLE));
+
+        GameLog log = defeat("BUFF_DOGE", "Buff Doge", 100);
+        assertThat(log.lines()).noneMatch(line -> line.startsWith("Quest progress"));
+
+        questService.accept(characterId, "LEG_DAY");
+        GameLog bossLog = defeat("BUFF_DOGE", "Buff Doge", 100);
+
+        assertThat(bossLog.lines()).contains(
+                "Quest progress: Never Skip Leg Day 1/1.",
+                "QUEST COMPLETE! Never Skip Leg Day. Much hero. Very reward.",
+                "Cheems gains 150 EXP.",
+                "Cheems receives Doge Coin (LEGENDARY).");
+    }
+
+    @Test
     void otherEnemiesDoNotCountTowardsTheQuest() {
         questService.accept(characterId, "KAREN_PROBLEMS");
 
