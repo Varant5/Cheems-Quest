@@ -87,6 +87,7 @@ class PersistenceTest {
         assertThat(reloaded.getLevel()).isEqualTo(1);
         assertThat(reloaded.getCurrentHp()).isEqualTo(65);
         assertThat(reloaded.getLocation().getCode()).isEqualTo("CHEEMS_DOGHOUSE");
+        assertThat(reloaded.visitedLocationCodes()).containsExactly("CHEEMS_DOGHOUSE");
         assertThat(reloaded.getPlayer().getUsername()).isEqualTo("cheems_fan");
     }
 

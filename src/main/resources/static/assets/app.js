@@ -212,7 +212,7 @@ async function enterGame(id) {
             }
             throw error;
         }),
-        state.map ? Promise.resolve(state.map) : api("GET", "/world/map")
+        api("GET", `/characters/${id}/map`)
     ]);
     storage.set(CHARACTER_KEY, id);
     state.map = map;
@@ -233,12 +233,14 @@ async function enterGame(id) {
 
 async function refreshGame() {
     const id = state.character.id;
-    const [character, inventory, quests] = await Promise.all([
+    const [character, inventory, quests, map] = await Promise.all([
         api("GET", `/characters/${id}`),
         api("GET", `/characters/${id}/inventory`),
-        api("GET", `/characters/${id}/quests`)
+        api("GET", `/characters/${id}/quests`),
+        api("GET", `/characters/${id}/map`)
     ]);
     state.character = character;
+    state.map = map;
     renderCharacter();
     renderLocation();
     renderInventory(inventory);
@@ -393,6 +395,7 @@ function drawMap(element, view) {
         const {x, y} = center(location);
         const direction = walkable.get(location.code);
         const classes = ["node"];
+        if (!location.discovered) classes.push("unknown");
         if (location.safe) classes.push("safe");
         if (location.code === here) classes.push("current");
         if (direction) classes.push("reachable");
@@ -400,11 +403,12 @@ function drawMap(element, view) {
         const text = svg("text", {x, y: y - (lines.length - 1) * 7},
             ...lines.map((line, index) => svg("tspan", {x, dy: index === 0 ? 0 : 14}, line)));
         const gate = direction && current.gates[direction];
+        const name = location.discovered ? location.name : "somewhere unexplored";
         const title = location.code === here
             ? `${location.name} (you are here)`
             : direction
-                ? `Walk ${direction.toLowerCase()} to ${location.name}${gate ? ` (requires ${gate.join(", ")})` : ""}`
-                : location.name;
+                ? `Walk ${direction.toLowerCase()} to ${name}${gate ? ` (requires ${gate.join(", ")})` : ""}`
+                : location.discovered ? location.name : "Unexplored";
         const node = svg("g", {class: classes.join(" ")},
             svg("title", {}, title),
             svg("rect", {x: x - width / 2, y: y - height / 2, width, height, rx: 8}),
@@ -504,6 +508,7 @@ async function move(direction) {
     }
     await guarded(async () => {
         const result = await api("POST", `/characters/${state.character.id}/move`, {direction});
+        state.map = await api("GET", `/characters/${state.character.id}/map`);
         Object.assign(state.character, {location: result.location, hp: result.hp, maxHp: result.maxHp});
         log(result.message, result.encounter ? "bad turn" : "system turn");
         if (!result.encounter) {

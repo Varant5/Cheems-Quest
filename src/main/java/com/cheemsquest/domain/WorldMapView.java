@@ -7,7 +7,7 @@ import java.util.Map;
 
 public record WorldMapView(int width, int height, List<MapLocationView> locations) {
 
-    public record MapLocationView(String code, String name, int x, int y, boolean safe, Map<Direction, String> exits,
-                                  Map<Direction, List<String>> gates) {
+    public record MapLocationView(String code, String name, int x, int y, boolean discovered, boolean safe,
+                                  Map<Direction, String> exits, Map<Direction, List<String>> gates) {
     }
 }

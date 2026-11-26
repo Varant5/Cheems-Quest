@@ -23,7 +23,7 @@ POST /api/characters/{id}/encounter/action  {"skill": "BONK"}
 
 - **Turn-based combat** with three skills, critical hits, misses and multi-enemy fights.
 - **Enemy AI** choosing attacks from weighted tables defined per enemy.
-- **World map** of eight locations in two regions, with random encounters, exits gated by level, quest or item, and a safe home where Cheems naps to full HP.
+- **World map** of eight locations in two regions, with random encounters, exits gated by level, quest or item, fog of war over unexplored places, and a safe home where Cheems naps to full HP.
 - **Progression**: experience, levels and stat growth.
 - **Items and equipment** in four slots, with rarities from COMMON to LEGENDARY.
 - **Weighted loot tables** with a drop chance per enemy, plus gold drops.
@@ -90,10 +90,10 @@ curl -s -X POST localhost:8080/api/characters/$ID/encounter/action \
 |---|---|---|
 | POST | `/api/auth/register` | Create an account, returns a JWT |
 | POST | `/api/auth/login` | Exchange credentials for a JWT |
-| GET | `/api/world/map` | All locations on a grid with their exits |
 | GET | `/api/characters` | List my characters |
 | POST | `/api/characters` | Create a character |
 | GET | `/api/characters/{id}` | Stats and current location |
+| GET | `/api/characters/{id}/map` | Explored locations on a grid, unexplored neighbours shown as ??? |
 | POST | `/api/characters/{id}/move` | Move `NORTH`, `SOUTH`, `EAST` or `WEST`, may start a fight |
 | GET | `/api/characters/{id}/encounter` | Current fight |
 | POST | `/api/characters/{id}/encounter/action` | Use `BONK`, `BITE` or `BONKING_SPIN` (optionally on a `target`), or a consumable `item` |

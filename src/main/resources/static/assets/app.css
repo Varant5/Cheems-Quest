@@ -398,6 +398,16 @@ label {
     stroke-width: 2;
 }
 
+.map .node.unknown rect {
+    fill: transparent;
+    stroke-dasharray: 5 4;
+}
+
+.map .node.unknown text {
+    font-style: italic;
+    opacity: 0.7;
+}
+
 .map .node.reachable text {
     fill: var(--text);
 }

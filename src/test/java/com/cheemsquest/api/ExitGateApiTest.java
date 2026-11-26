@@ -68,15 +68,6 @@ class ExitGateApiTest {
     }
 
     @Test
-    void mapShowsTheGateOnlyOnTheGuardedSide() throws Exception {
-        mvc.perform(get("/api/world/map"))
-                .andExpect(jsonPath("$.locations[1].code").value("BUFF_DOGE_TOWER"))
-                .andExpect(jsonPath("$.locations[1].gates").isEmpty())
-                .andExpect(jsonPath("$.locations[5].code").value("WOW_FOREST"))
-                .andExpect(jsonPath("$.locations[5].gates.NORTH[0]").value("level 3"));
-    }
-
-    @Test
     void bonkMountainsOpenAfterLegDay() throws Exception {
         walkToTheSwamp();
 

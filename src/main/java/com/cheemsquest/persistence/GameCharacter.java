@@ -5,7 +5,9 @@ import com.cheemsquest.engine.model.StatBonus;
 import com.cheemsquest.engine.model.Stats;
 import com.cheemsquest.engine.progression.Progression;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -22,6 +24,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -78,6 +81,12 @@ public class GameCharacter {
     private Instant createdAt;
 
     @Getter(AccessLevel.NONE)
+    @ElementCollection
+    @CollectionTable(name = "visited_location", joinColumns = @JoinColumn(name = "character_id"))
+    @Column(name = "location_code")
+    private Set<String> visitedLocations = new HashSet<>();
+
+    @Getter(AccessLevel.NONE)
     @OneToMany(mappedBy = "character", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("acquiredAt")
     private List<InventorySlot> inventory = new ArrayList<>();
@@ -93,6 +102,13 @@ public class GameCharacter {
         this.currentHp = stats.maxHp();
         this.location = startLocation;
         this.createdAt = Instant.now();
+        if (startLocation != null) {
+            visitedLocations.add(startLocation.getCode());
+        }
+    }
+
+    public Set<String> visitedLocationCodes() {
+        return Set.copyOf(visitedLocations);
     }
 
     public Stats baseStats() {
@@ -216,6 +232,7 @@ public class GameCharacter {
 
     public void moveTo(Location destination) {
         this.location = destination;
+        visitedLocations.add(destination.getCode());
     }
 
     public void updateHp(int hp) {
