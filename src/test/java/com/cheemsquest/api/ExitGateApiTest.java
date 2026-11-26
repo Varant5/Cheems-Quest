@@ -70,9 +70,56 @@ class ExitGateApiTest {
     @Test
     void mapShowsTheGateOnlyOnTheGuardedSide() throws Exception {
         mvc.perform(get("/api/world/map"))
-                .andExpect(jsonPath("$.locations[0].code").value("BUFF_DOGE_TOWER"))
-                .andExpect(jsonPath("$.locations[0].gates").isEmpty())
-                .andExpect(jsonPath("$.locations[2].code").value("WOW_FOREST"))
-                .andExpect(jsonPath("$.locations[2].gates.NORTH[0]").value("level 3"));
+                .andExpect(jsonPath("$.locations[1].code").value("BUFF_DOGE_TOWER"))
+                .andExpect(jsonPath("$.locations[1].gates").isEmpty())
+                .andExpect(jsonPath("$.locations[5].code").value("WOW_FOREST"))
+                .andExpect(jsonPath("$.locations[5].gates.NORTH[0]").value("level 3"));
+    }
+
+    @Test
+    void bonkMountainsOpenAfterLegDay() throws Exception {
+        walkToTheSwamp();
+
+        move("WEST")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.detail")
+                        .value("Such gate. To enter Bonk Pass you need quest Never Skip Leg Day."));
+
+        TestPlayers.completeQuest(context, id, "LEG_DAY");
+        move("WEST")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.location.code").value("BONK_PASS"));
+    }
+
+    @Test
+    void echoCaveNeedsAHeadlamp() throws Exception {
+        TestPlayers.completeQuest(context, id, "LEG_DAY");
+        walkToTheSwamp();
+        move("WEST");
+
+        move("WEST")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.detail").value("Such gate. To enter Echo Cave you need Headlamp Hat."));
+
+        TestPlayers.giveItem(context, id, "HEADLAMP_HAT");
+        move("WEST")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.location.code").value("ECHO_CAVE"));
+    }
+
+    @Test
+    void bonkPeakNeedsLevelFive() throws Exception {
+        TestPlayers.completeQuest(context, id, "LEG_DAY");
+        walkToTheSwamp();
+        move("WEST");
+
+        move("NORTH")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.detail").value("Such gate. To enter Bonk Peak you need level 5."));
+    }
+
+    private void walkToTheSwamp() throws Exception {
+        move("NORTH").andExpect(status().isOk());
+        move("WEST").andExpect(status().isOk());
     }
 }

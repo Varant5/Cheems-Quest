@@ -11,7 +11,7 @@ const KEY_DIRECTIONS = {
 };
 const KEY_SKILLS = {1: "BONK", 2: "BITE", 3: "BONKING_SPIN"};
 const OBJECTIVE_VERBS = {DEFEAT_ENEMY: "Defeat", VISIT_LOCATION: "Visit", COLLECT_ITEM: "Find"};
-const MAP_CELL = {width: 96, height: 50, gapX: 26, gapY: 22, padding: 4};
+const MAP_CELL = {width: 96, height: 50, gapX: 26, gapY: 22, padding: 4, stub: 12};
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 const state = {
@@ -311,38 +311,76 @@ function renderMap() {
     if (!map || !state.character) {
         return;
     }
-    const {width, height, gapX, gapY, padding} = MAP_CELL;
+    const current = map.locations.find((location) => location.code === state.character.location.code);
+    const whole = {x: 0, y: 0, cols: map.width, rows: map.height};
+    drawMap($("#map"), current ? {x: current.x - 1, y: current.y - 1, cols: 3, rows: 3} : whole);
+    const dialog = $("#map-dialog");
+    if (dialog.open && state.encounter) {
+        dialog.close();
+    } else if (dialog.open) {
+        drawMap($("#full-map"), whole);
+    }
+}
+
+function openFullMap() {
+    if (!state.map) {
+        return;
+    }
+    $("#map-dialog").showModal();
+    renderMap();
+}
+
+function drawMap(element, view) {
+    const map = state.map;
+    const {width, height, gapX, gapY, stub} = MAP_CELL;
+    const padding = MAP_CELL.padding + stub;
     const here = state.character.location.code;
     const current = map.locations.find((location) => location.code === here);
     const walkable = new Map(state.encounter || !current
         ? []
         : Object.entries(current.exits).map(([direction, code]) => [code, direction]));
     const byCode = new Map(map.locations.map((location) => [location.code, location]));
+    const visible = (location) => location.x >= view.x && location.x < view.x + view.cols
+        && location.y >= view.y && location.y < view.y + view.rows;
     const center = (location) => ({
-        x: padding + location.x * (width + gapX) + width / 2,
-        y: padding + location.y * (height + gapY) + height / 2
+        x: padding + (location.x - view.x) * (width + gapX) + width / 2,
+        y: padding + (location.y - view.y) * (height + gapY) + height / 2
     });
-
     const gateOf = (location, code) => {
         const exit = Object.entries(location.exits).find(([, target]) => target === code);
         return exit ? location.gates[exit[0]] : undefined;
     };
+    const shown = map.locations.filter(visible);
 
     const edges = [];
     const locks = [];
-    for (const location of map.locations) {
+    for (const location of shown) {
         for (const code of Object.values(location.exits)) {
             const target = byCode.get(code);
-            if (!target || location.code > code) {
+            if (!target) {
                 continue;
             }
             const from = center(location);
             const to = center(target);
-            const open = (location.code === here && walkable.has(code)) || (code === here && walkable.has(location.code));
             const gate = gateOf(location, code) || gateOf(target, location.code);
             const classes = ["edge"];
-            if (open) classes.push("open");
             if (gate) classes.push("gated");
+            if (!visible(target)) {
+                const dx = Math.sign(to.x - from.x);
+                const dy = Math.sign(to.y - from.y);
+                const reach = dx ? width / 2 + stub : height / 2 + stub;
+                classes.push("stub");
+                edges.push(svg("line", {
+                    x1: from.x, y1: from.y, x2: from.x + dx * reach, y2: from.y + dy * reach,
+                    class: classes.join(" ")
+                }, svg("title", {}, `Leads to ${target.name}`)));
+                continue;
+            }
+            if (location.code > code) {
+                continue;
+            }
+            const open = (location.code === here && walkable.has(code)) || (code === here && walkable.has(location.code));
+            if (open) classes.push("open");
             edges.push(svg("line", {x1: from.x, y1: from.y, x2: to.x, y2: to.y, class: classes.join(" ")}));
             if (gate) {
                 locks.push(svg("text", {x: (from.x + to.x) / 2, y: (from.y + to.y) / 2, class: "lock"},
@@ -351,7 +389,7 @@ function renderMap() {
         }
     }
 
-    const nodes = map.locations.map((location) => {
+    const nodes = shown.map((location) => {
         const {x, y} = center(location);
         const direction = walkable.get(location.code);
         const classes = ["node"];
@@ -385,9 +423,8 @@ function renderMap() {
         return node;
     });
 
-    const svgWidth = padding * 2 + map.width * (width + gapX) - gapX;
-    const svgHeight = padding * 2 + map.height * (height + gapY) - gapY;
-    const element = $("#map");
+    const svgWidth = padding * 2 + view.cols * (width + gapX) - gapX;
+    const svgHeight = padding * 2 + view.rows * (height + gapY) - gapY;
     element.setAttribute("viewBox", `0 0 ${svgWidth} ${svgHeight}`);
     element.replaceChildren(...edges, ...nodes, ...locks);
 }
@@ -717,7 +754,14 @@ function onKey(event) {
     }
     const direction = KEY_DIRECTIONS[event.key];
     const skill = KEY_SKILLS[event.key];
-    if (direction) {
+    if (event.key === "m" || event.key === "M") {
+        event.preventDefault();
+        if ($("#map-dialog").open) {
+            $("#map-dialog").close();
+        } else if (!state.encounter) {
+            openFullMap();
+        }
+    } else if (direction) {
         event.preventDefault();
         move(direction);
     } else if (skill) {
@@ -744,6 +788,13 @@ async function init() {
     for (const button of document.querySelectorAll("#compass button")) {
         button.addEventListener("click", () => move(button.dataset.dir));
     }
+    $("#full-map-button").addEventListener("click", openFullMap);
+    $("#map-dialog-close").addEventListener("click", () => $("#map-dialog").close());
+    $("#map-dialog").addEventListener("click", (event) => {
+        if (event.target === event.currentTarget) {
+            event.currentTarget.close();
+        }
+    });
     for (const button of document.querySelectorAll(".skill")) {
         button.addEventListener("click", () => act(button.dataset.skill));
     }

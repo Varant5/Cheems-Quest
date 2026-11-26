@@ -2,6 +2,11 @@ package com.cheemsquest.api;
 
 import com.cheemsquest.persistence.GameCharacter;
 import com.cheemsquest.persistence.GameCharacterRepository;
+import com.cheemsquest.persistence.ItemRepository;
+import com.cheemsquest.persistence.Quest;
+import com.cheemsquest.persistence.QuestProgress;
+import com.cheemsquest.persistence.QuestProgressRepository;
+import com.cheemsquest.persistence.QuestRepository;
 import com.jayway.jsonpath.JsonPath;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -11,6 +16,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.stream.IntStream;
 
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -64,6 +70,22 @@ final class TestPlayers {
 
     static void gainExperience(WebApplicationContext context, String characterId, int amount) {
         update(context, characterId, character -> character.gainExperience(amount));
+    }
+
+    static void giveItem(WebApplicationContext context, String characterId, String itemCode) {
+        ItemRepository items = context.getBean(ItemRepository.class);
+        update(context, characterId, character -> character.addItem(items.findById(itemCode).orElseThrow()));
+    }
+
+    static void completeQuest(WebApplicationContext context, String characterId, String questCode) {
+        QuestRepository quests = context.getBean(QuestRepository.class);
+        QuestProgressRepository progresses = context.getBean(QuestProgressRepository.class);
+        update(context, characterId, character -> {
+            Quest quest = quests.findById(questCode).orElseThrow();
+            QuestProgress progress = new QuestProgress(character, quest);
+            IntStream.range(0, quest.getRequiredAmount()).forEach(i -> progress.advance());
+            progresses.save(progress);
+        });
     }
 
     static void update(WebApplicationContext context, String characterId, Consumer<GameCharacter> change) {

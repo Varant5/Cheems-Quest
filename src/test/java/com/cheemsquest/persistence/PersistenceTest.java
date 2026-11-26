@@ -38,8 +38,8 @@ class PersistenceTest {
 
     @Test
     void seedsTheWorld() {
-        assertThat(locations.count()).isEqualTo(5);
-        assertThat(enemies.count()).isEqualTo(4);
+        assertThat(locations.count()).isEqualTo(8);
+        assertThat(enemies.count()).isEqualTo(7);
     }
 
     @Test

@@ -338,16 +338,20 @@ label {
 }
 
 .map {
+    margin-top: 12px;
     display: block;
     width: 100%;
     height: auto;
-    margin-top: 12px;
 }
 
 .map .edge {
     stroke: var(--border);
     stroke-width: 3;
     stroke-linecap: round;
+}
+
+.map .edge.stub {
+    opacity: 0.6;
 }
 
 .map .edge.gated {
@@ -737,4 +741,38 @@ kbd {
     font-weight: 700;
     color: var(--good);
     margin-left: 8px;
+}
+
+.map-button {
+    margin-left: auto;
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--panel-2);
+}
+
+.map-button:hover {
+    border-color: var(--accent);
+}
+
+.map-dialog {
+    width: min(92vw, 760px);
+    padding: 16px;
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.map-dialog::backdrop {
+    background: rgb(0 0 0 / 60%);
+}
+
+.map-dialog-header {
+    display: flex;
+    align-items: center;
+}
+
+.map-dialog-header h2 {
+    margin: 0;
 }

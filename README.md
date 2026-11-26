@@ -23,7 +23,7 @@ POST /api/characters/{id}/encounter/action  {"skill": "BONK"}
 
 - **Turn-based combat** with three skills, critical hits, misses and multi-enemy fights.
 - **Enemy AI** choosing attacks from weighted tables defined per enemy.
-- **World map** of five locations with random encounters and a safe home where Cheems naps to full HP.
+- **World map** of eight locations in two regions, with random encounters, exits gated by level, quest or item, and a safe home where Cheems naps to full HP.
 - **Progression**: experience, levels and stat growth.
 - **Items and equipment** in four slots, with rarities from COMMON to LEGENDARY.
 - **Weighted loot tables** with a drop chance per enemy, plus gold drops.
@@ -172,19 +172,27 @@ sequenceDiagram
 ## The world
 
 ```text
-                 Buff Doge Tower
-                        |
-   Much Swamp ----- Wow Forest
-                        |
-              Cheems' Doghouse ---- Karen's Basement
+    Bonk Peak                                     Buff Doge Tower
+        |                                                |
+    [lvl 5]                                          [lvl 3]
+        |                                                |
+   Echo Cave --[Headlamp Hat]-- Bonk Pass --[Leg Day]-- Much Swamp ---- Wow Forest
+                                                                             |
+                                                                   Cheems' Doghouse ---- Karen's Basement
 ```
+
+Gated exits only open when Cheems reaches a level, finishes a quest or carries an item.
+The way back is always open.
 
 | Enemy | HP | Found in | Drops |
 |---|---|---|---|
 | Neighbor's Lil Doge | 20 | Wow Forest, Karen's Basement, Much Swamp | Very Stick, Spiky Collar |
 | Wild Karen Doge | 35 | Karen's Basement, Wow Forest | Karen's Wig, Spiky Collar |
-| Soggy Shibe | 28 | Much Swamp | Soggy Raincoat, Spiky Collar |
+| Soggy Shibe | 28 | Much Swamp, Bonk Pass | Soggy Raincoat, Spiky Collar |
 | Buff Doge | 120 | Buff Doge Tower | Buff Harness, Stonks Helmet, Legendary Bone |
+| Mountain Goat Doge | 55 | Bonk Pass, Echo Cave | Headlamp Hat, Spiky Collar |
+| Cave Bat Shibe | 42 | Echo Cave | Bat Fang Necklace, Headlamp Hat |
+| Abominable Snow Doge | 150 | Bonk Peak | Yeti Fur Coat, Frost Bone |
 
 | Quest | Objective | Requires | Reward |
 |---|---|---|---|

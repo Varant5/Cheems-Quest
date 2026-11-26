@@ -77,11 +77,12 @@
             <div class="card">
                 <h2 id="loc-name"></h2>
                 <p id="loc-desc" class="muted small"></p>
-                <svg id="map" class="map" role="img" aria-label="World map"></svg>
+                <svg id="map" class="map" role="img" aria-label="Nearby map"></svg>
                 <p class="map-legend small muted">
                     <span class="dot current"></span>you
                     <span class="dot reachable"></span>can go
                     <span class="dot safe"></span>safe
+                    <button type="button" id="full-map-button" class="map-button" title="Full map (M)">🗺 Full map</button>
                 </p>
                 <div class="compass" id="compass">
                     <button type="button" data-dir="NORTH" class="n" title="North (W / ↑)">N</button>
@@ -130,5 +131,12 @@
         </aside>
     </section>
 </main>
+<dialog id="map-dialog" class="map-dialog" aria-label="World map">
+    <div class="map-dialog-header">
+        <h2>World map</h2>
+        <button type="button" id="map-dialog-close" class="map-button" title="Close (M / Esc)">✕</button>
+    </div>
+    <svg id="full-map" class="map" role="img" aria-label="Full world map"></svg>
+</dialog>
 </body>
 </html>
