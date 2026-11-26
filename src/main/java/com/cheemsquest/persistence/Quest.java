@@ -1,7 +1,11 @@
 package com.cheemsquest.persistence;
 
+import com.cheemsquest.engine.quest.ObjectiveType;
+import com.cheemsquest.engine.quest.QuestObjective;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -30,12 +34,16 @@ public class Quest {
     @Column(nullable = false)
     private String description;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "objective_type", nullable = false, length = 32)
+    private ObjectiveType objectiveType;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "target_enemy_code")
     private Enemy targetEnemy;
 
-    @Column(name = "required_kills", nullable = false)
-    private int requiredKills;
+    @Column(name = "required_amount", nullable = false)
+    private int requiredAmount;
 
     @Column(name = "reward_exp", nullable = false)
     private int rewardExp;
@@ -48,7 +56,16 @@ public class Quest {
         return Optional.ofNullable(rewardItem);
     }
 
-    public boolean targets(String enemyCode) {
-        return targetEnemy.getCode().equals(enemyCode);
+    public QuestObjective objective() {
+        String targetCode = switch (objectiveType) {
+            case DEFEAT_ENEMY -> targetEnemy.getCode();
+        };
+        return new QuestObjective(objectiveType, targetCode, requiredAmount);
+    }
+
+    public String targetName() {
+        return switch (objectiveType) {
+            case DEFEAT_ENEMY -> targetEnemy.getName();
+        };
     }
 }

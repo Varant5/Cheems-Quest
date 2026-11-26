@@ -1,5 +1,6 @@
 package com.cheemsquest.domain;
 
+import com.cheemsquest.engine.quest.ObjectiveType;
 import com.cheemsquest.engine.quest.QuestStatus;
 import com.cheemsquest.persistence.Item;
 import com.cheemsquest.persistence.Quest;
@@ -9,9 +10,10 @@ public record QuestView(
         String code,
         String name,
         String description,
-        String targetEnemy,
-        int requiredKills,
-        int kills,
+        ObjectiveType objectiveType,
+        String target,
+        int requiredAmount,
+        int progress,
         QuestStatus status,
         int rewardExp,
         String rewardItem) {
@@ -21,12 +23,12 @@ public record QuestView(
     }
 
     static QuestView from(QuestProgress progress) {
-        return of(progress.getQuest(), progress.getKills(), progress.getStatus());
+        return of(progress.getQuest(), progress.getProgress(), progress.getStatus());
     }
 
-    private static QuestView of(Quest quest, int kills, QuestStatus status) {
+    private static QuestView of(Quest quest, int progress, QuestStatus status) {
         return new QuestView(quest.getCode(), quest.getName(), quest.getDescription(),
-                quest.getTargetEnemy().getName(), quest.getRequiredKills(), kills, status,
+                quest.getObjectiveType(), quest.targetName(), quest.getRequiredAmount(), progress, status,
                 quest.getRewardExp(), quest.rewardItem().map(Item::getName).orElse(null));
     }
 }

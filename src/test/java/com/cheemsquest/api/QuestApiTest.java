@@ -45,9 +45,10 @@ class QuestApiTest {
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].code").value("KAREN_PROBLEMS"))
                 .andExpect(jsonPath("$[0].status").value("AVAILABLE"))
-                .andExpect(jsonPath("$[0].targetEnemy").value("Wild Karen Doge"))
-                .andExpect(jsonPath("$[0].kills").value(0))
-                .andExpect(jsonPath("$[0].requiredKills").value(3))
+                .andExpect(jsonPath("$[0].objectiveType").value("DEFEAT_ENEMY"))
+                .andExpect(jsonPath("$[0].target").value("Wild Karen Doge"))
+                .andExpect(jsonPath("$[0].progress").value(0))
+                .andExpect(jsonPath("$[0].requiredAmount").value(3))
                 .andExpect(jsonPath("$[0].rewardExp").value(60))
                 .andExpect(jsonPath("$[0].rewardItem").value("Stonks Helmet"));
     }
@@ -91,7 +92,7 @@ class QuestApiTest {
         }
 
         mvc.perform(get("/api/characters/{id}/quests", id))
-                .andExpect(jsonPath("$[0].kills").value(1))
+                .andExpect(jsonPath("$[0].progress").value(1))
                 .andExpect(jsonPath("$[0].status").value("ACTIVE"));
     }
 }

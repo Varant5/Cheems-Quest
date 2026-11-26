@@ -38,7 +38,7 @@ public class QuestProgress {
     private Quest quest;
 
     @Column(nullable = false)
-    private int kills;
+    private int progress;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 16)
@@ -53,17 +53,17 @@ public class QuestProgress {
     public QuestProgress(GameCharacter character, Quest quest) {
         this.character = character;
         this.quest = quest;
-        this.kills = 0;
+        this.progress = 0;
         this.status = QuestStatus.ACTIVE;
         this.acceptedAt = Instant.now();
     }
 
-    public boolean recordKill() {
+    public boolean advance() {
         if (status != QuestStatus.ACTIVE) {
             throw new IllegalStateException("quest " + quest.getCode() + " is not active");
         }
-        kills++;
-        if (kills >= quest.getRequiredKills()) {
+        progress++;
+        if (quest.objective().isMet(progress)) {
             status = QuestStatus.COMPLETED;
             completedAt = Instant.now();
             return true;

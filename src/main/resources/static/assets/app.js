@@ -10,6 +10,7 @@ const KEY_DIRECTIONS = {
     ArrowRight: "EAST", d: "EAST"
 };
 const KEY_SKILLS = {1: "BONK", 2: "BITE", 3: "BONKING_SPIN"};
+const OBJECTIVE_VERBS = {DEFEAT_ENEMY: "Defeat"};
 const MAP_CELL = {width: 96, height: 50, gapX: 26, gapY: 22, padding: 4};
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -587,7 +588,7 @@ async function toggleItem(item) {
 function renderQuests(quests) {
     $("#quests").replaceChildren(...quests.map((quest) => {
         const progress = el("div", {className: "bar"}, el("div", {className: "fill exp"}));
-        progress.firstChild.style.width = `${(quest.kills / quest.requiredKills) * 100}%`;
+        progress.firstChild.style.width = `${(quest.progress / quest.requiredAmount) * 100}%`;
         const reward = [`${quest.rewardExp} EXP`, quest.rewardItem].filter(Boolean).join(" + ");
         return el("li", {className: "item"},
             el("div", {className: "row"},
@@ -596,7 +597,7 @@ function renderQuests(quests) {
             el("p", {textContent: quest.description}),
             quest.status === "AVAILABLE" ? null : progress,
             el("div", {className: "row meta"},
-                el("span", {textContent: `${quest.targetEnemy}: ${quest.kills}/${quest.requiredKills} · Reward: ${reward}`}),
+                el("span", {textContent: `${OBJECTIVE_VERBS[quest.objectiveType]} ${quest.target}: ${quest.progress}/${quest.requiredAmount} · Reward: ${reward}`}),
                 quest.status === "AVAILABLE"
                     ? el("button", {type: "button", className: "primary", textContent: "Accept", onclick: () => acceptQuest(quest)})
                     : null));

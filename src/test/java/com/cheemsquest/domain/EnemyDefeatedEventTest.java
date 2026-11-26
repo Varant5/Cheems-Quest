@@ -127,7 +127,7 @@ class EnemyDefeatedEventTest {
         GameLog log = defeat("LIL_DOGE", "Neighbor's Lil Doge", 8);
 
         assertThat(log.lines()).containsExactly("Cheems gains 8 EXP.", "Cheems finds 5 gold.");
-        assertThat(questService.list(characterId).getFirst().kills()).isZero();
+        assertThat(questService.list(characterId).getFirst().progress()).isZero();
     }
 
     @Test
