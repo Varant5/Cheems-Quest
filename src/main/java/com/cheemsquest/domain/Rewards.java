@@ -1,7 +1,6 @@
 package com.cheemsquest.domain;
 
 import com.cheemsquest.persistence.GameCharacter;
-import com.cheemsquest.persistence.Item;
 
 final class Rewards {
 
@@ -21,10 +20,5 @@ final class Rewards {
             character.addGold(amount);
             log.add(character.getName() + " finds " + amount + " gold.");
         }
-    }
-
-    static void grantItem(GameCharacter character, Item item, GameLog log) {
-        character.addItem(item);
-        log.add(character.getName() + " receives " + item.getName() + " (" + item.getRarity() + ").");
     }
 }

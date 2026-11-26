@@ -139,6 +139,44 @@ class EnemyDefeatedEventTest {
     }
 
     @Test
+    void lootedWigsCountTowardsTheCollectQuest() {
+        questService.accept(characterId, "WIG_HUNT");
+        rng.set(0.2);
+
+        GameLog first = defeat("KAREN_DOGE", "Wild Karen Doge", 20);
+        GameLog second = defeat("KAREN_DOGE", "Wild Karen Doge", 20);
+
+        assertThat(first.lines()).endsWith(
+                "Loot! Wild Karen Doge drops Karen's Wig (RARE).",
+                "Quest progress: Manager Material 1/2.");
+        assertThat(second.lines()).containsExactly(
+                "Cheems gains 20 EXP.",
+                "Cheems finds 6 gold.",
+                "Loot! Wild Karen Doge drops Karen's Wig (RARE).",
+                "Quest progress: Manager Material 2/2.",
+                "QUEST COMPLETE! Manager Material. Much hero. Very reward.",
+                "Cheems gains 80 EXP.",
+                "LEVEL UP! Cheems is now level 2. Much stronger!",
+                "Cheems receives Spiky Collar (RARE).");
+        assertThat(cheems().getInventory()).extracting(slot -> slot.getItem().getCode())
+                .containsExactly("VERY_STICK", "KARENS_WIG", "KARENS_WIG", "SPIKY_COLLAR");
+    }
+
+    @Test
+    void collectQuestIgnoresOtherItems() {
+        questService.accept(characterId, "WIG_HUNT");
+        questService.accept(characterId, "KAREN_PROBLEMS");
+
+        defeat("KAREN_DOGE", "Wild Karen Doge", 20);
+        defeat("KAREN_DOGE", "Wild Karen Doge", 20);
+        GameLog third = defeat("KAREN_DOGE", "Wild Karen Doge", 20);
+
+        assertThat(third.lines()).endsWith("Cheems receives Stonks Helmet (EPIC).");
+        assertThat(questService.list(characterId)).filteredOn(quest -> quest.code().equals("WIG_HUNT"))
+                .singleElement().satisfies(quest -> assertThat(quest.progress()).isZero());
+    }
+
+    @Test
     void karenDropsOnlyGoldWhenLuckIsBad() {
         GameLog log = defeat("KAREN_DOGE", "Wild Karen Doge", 20);
 

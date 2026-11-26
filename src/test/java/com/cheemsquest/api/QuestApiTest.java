@@ -43,7 +43,7 @@ class QuestApiTest {
     void listsAvailableQuest() throws Exception {
         mvc.perform(get("/api/characters/{id}/quests", id))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$.length()").value(3))
                 .andExpect(jsonPath("$[0].code").value("KAREN_PROBLEMS"))
                 .andExpect(jsonPath("$[0].status").value("AVAILABLE"))
                 .andExpect(jsonPath("$[0].objectiveType").value("DEFEAT_ENEMY"))
@@ -62,6 +62,16 @@ class QuestApiTest {
                 .andExpect(jsonPath("$[1].target").value("Much Swamp"))
                 .andExpect(jsonPath("$[1].requiredAmount").value(1))
                 .andExpect(jsonPath("$[1].rewardItem").value("Cheemsburger"));
+    }
+
+    @Test
+    void listsCollectQuest() throws Exception {
+        mvc.perform(get("/api/characters/{id}/quests", id))
+                .andExpect(jsonPath("$[2].code").value("WIG_HUNT"))
+                .andExpect(jsonPath("$[2].objectiveType").value("COLLECT_ITEM"))
+                .andExpect(jsonPath("$[2].target").value("Karen's Wig"))
+                .andExpect(jsonPath("$[2].requiredAmount").value(2))
+                .andExpect(jsonPath("$[2].rewardItem").value("Spiky Collar"));
     }
 
     @Test

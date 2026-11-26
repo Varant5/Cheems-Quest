@@ -18,6 +18,7 @@ class LootListener {
     private final EnemyRepository enemies;
     private final GameCharacterRepository characters;
     private final RandomGenerator rng;
+    private final ItemRewards itemRewards;
 
     @EventListener
     @Order(ListenerOrder.LOOT)
@@ -28,10 +29,8 @@ class LootListener {
                 .orElseThrow(() -> new NotFoundException("Character " + event.characterId() + " not found"));
 
         Rewards.grantGold(character, enemy.goldDrop().roll(rng), event.log());
-        enemy.lootTable().roll(rng).ifPresent(item -> {
-            character.addItem(item);
-            event.log().add("Loot! " + event.enemyName() + " drops " + item.getName()
-                    + " (" + item.getRarity() + ").");
-        });
+        enemy.lootTable().roll(rng).ifPresent(item -> itemRewards.grant(character, item,
+                "Loot! " + event.enemyName() + " drops " + item.getName() + " (" + item.getRarity() + ").",
+                event.log()));
     }
 }

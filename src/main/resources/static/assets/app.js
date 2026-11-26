@@ -10,7 +10,7 @@ const KEY_DIRECTIONS = {
     ArrowRight: "EAST", d: "EAST"
 };
 const KEY_SKILLS = {1: "BONK", 2: "BITE", 3: "BONKING_SPIN"};
-const OBJECTIVE_VERBS = {DEFEAT_ENEMY: "Defeat", VISIT_LOCATION: "Visit"};
+const OBJECTIVE_VERBS = {DEFEAT_ENEMY: "Defeat", VISIT_LOCATION: "Visit", COLLECT_ITEM: "Find"};
 const MAP_CELL = {width: 96, height: 50, gapX: 26, gapY: 22, padding: 4};
 const SVG_NS = "http://www.w3.org/2000/svg";
 
