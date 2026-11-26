@@ -350,6 +350,17 @@ label {
     stroke-linecap: round;
 }
 
+.map .edge.gated {
+    stroke-dasharray: 2 6;
+}
+
+.map .lock {
+    font-size: 12px;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    cursor: help;
+}
+
 .map .edge.open {
     stroke: var(--accent);
     stroke-dasharray: 4 5;

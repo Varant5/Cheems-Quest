@@ -323,7 +323,13 @@ function renderMap() {
         y: padding + location.y * (height + gapY) + height / 2
     });
 
+    const gateOf = (location, code) => {
+        const exit = Object.entries(location.exits).find(([, target]) => target === code);
+        return exit ? location.gates[exit[0]] : undefined;
+    };
+
     const edges = [];
+    const locks = [];
     for (const location of map.locations) {
         for (const code of Object.values(location.exits)) {
             const target = byCode.get(code);
@@ -333,7 +339,15 @@ function renderMap() {
             const from = center(location);
             const to = center(target);
             const open = (location.code === here && walkable.has(code)) || (code === here && walkable.has(location.code));
-            edges.push(svg("line", {x1: from.x, y1: from.y, x2: to.x, y2: to.y, class: `edge${open ? " open" : ""}`}));
+            const gate = gateOf(location, code) || gateOf(target, location.code);
+            const classes = ["edge"];
+            if (open) classes.push("open");
+            if (gate) classes.push("gated");
+            edges.push(svg("line", {x1: from.x, y1: from.y, x2: to.x, y2: to.y, class: classes.join(" ")}));
+            if (gate) {
+                locks.push(svg("text", {x: (from.x + to.x) / 2, y: (from.y + to.y) / 2, class: "lock"},
+                    svg("title", {}, `Requires ${gate.join(", ")}`), "🔒"));
+            }
         }
     }
 
@@ -347,9 +361,12 @@ function renderMap() {
         const lines = mapLabel(location.name);
         const text = svg("text", {x, y: y - (lines.length - 1) * 7},
             ...lines.map((line, index) => svg("tspan", {x, dy: index === 0 ? 0 : 14}, line)));
+        const gate = direction && current.gates[direction];
         const title = location.code === here
             ? `${location.name} (you are here)`
-            : direction ? `Walk ${direction.toLowerCase()} to ${location.name}` : location.name;
+            : direction
+                ? `Walk ${direction.toLowerCase()} to ${location.name}${gate ? ` (requires ${gate.join(", ")})` : ""}`
+                : location.name;
         const node = svg("g", {class: classes.join(" ")},
             svg("title", {}, title),
             svg("rect", {x: x - width / 2, y: y - height / 2, width, height, rx: 8}),
@@ -372,7 +389,7 @@ function renderMap() {
     const svgHeight = padding * 2 + map.height * (height + gapY) - gapY;
     const element = $("#map");
     element.setAttribute("viewBox", `0 0 ${svgWidth} ${svgHeight}`);
-    element.replaceChildren(...edges, ...nodes);
+    element.replaceChildren(...edges, ...nodes, ...locks);
 }
 
 function enemyNames(encounter) {

@@ -54,6 +54,12 @@ public class Location {
     private Map<Direction, Location> exits = new EnumMap<>(Direction.class);
 
     @ElementCollection
+    @CollectionTable(name = "exit_gate", joinColumns = @JoinColumn(name = "location_code"))
+    @MapKeyEnumerated(EnumType.STRING)
+    @MapKeyColumn(name = "direction")
+    private Map<Direction, ExitGate> gates = new EnumMap<>(Direction.class);
+
+    @ElementCollection
     @CollectionTable(name = "location_spawn", joinColumns = @JoinColumn(name = "location_code"))
     @OrderBy("weight DESC")
     private List<SpawnEntry> spawns = new ArrayList<>();
@@ -68,6 +74,10 @@ public class Location {
 
     public Optional<Location> exit(Direction direction) {
         return Optional.ofNullable(exits.get(direction));
+    }
+
+    public Optional<ExitGate> gate(Direction direction) {
+        return Optional.ofNullable(gates.get(direction));
     }
 
     public boolean hasShop() {

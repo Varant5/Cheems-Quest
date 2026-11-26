@@ -1,5 +1,6 @@
 package com.cheemsquest.domain;
 
+import com.cheemsquest.engine.quest.QuestStatus;
 import com.cheemsquest.engine.world.Direction;
 import com.cheemsquest.persistence.GameCharacter;
 import com.cheemsquest.persistence.GameCharacterRepository;
@@ -8,6 +9,7 @@ import com.cheemsquest.persistence.ItemRepository;
 import com.cheemsquest.persistence.Location;
 import com.cheemsquest.persistence.Player;
 import com.cheemsquest.persistence.PlayerRepository;
+import com.cheemsquest.persistence.QuestProgressRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -15,7 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +30,7 @@ public class CharacterService {
     private final ItemRepository items;
     private final EncounterService encounterService;
     private final ApplicationEventPublisher events;
+    private final QuestProgressRepository quests;
 
     @Transactional
     public CharacterView create(UUID playerId, String characterName) {
@@ -63,6 +68,14 @@ public class CharacterService {
         Location destination = current.exit(direction)
                 .orElseThrow(() -> new GameRuleException(
                         "Much wall. You can't go " + direction + " from " + current.getName() + "."));
+        current.gate(direction).ifPresent(gate -> {
+            List<String> unmet = gate.unmetBy(character.getLevel(), completedQuestCodes(characterId),
+                    character.itemCodes());
+            if (!unmet.isEmpty()) {
+                throw new GameRuleException("Such gate. To enter " + destination.getName() + " you need "
+                        + String.join(", ", unmet) + ".");
+            }
+        });
         character.moveTo(destination);
 
         StringBuilder message = new StringBuilder("You enter " + destination.getName() + ".");
@@ -77,6 +90,12 @@ public class CharacterService {
 
         return new MoveView(message.toString(), LocationView.from(destination),
                 character.getCurrentHp(), character.stats().maxHp(), encounter.orElse(null), log.lines());
+    }
+
+    private Set<String> completedQuestCodes(UUID characterId) {
+        return quests.findByCharacterIdAndStatus(characterId, QuestStatus.COMPLETED).stream()
+                .map(progress -> progress.getQuest().getCode())
+                .collect(Collectors.toSet());
     }
 
     private GameCharacter load(UUID characterId) {

@@ -148,8 +148,12 @@ class EncounterApiTest {
 
     @Test
     void defeatRespawnsCharacterAtHomeWithFullHp() throws Exception {
+        TestPlayers.update(context, id, cheems -> {
+            cheems.gainExperience(150);
+            cheems.updateHp(1);
+        });
         move("NORTH");
-        // 0.2: always an encounter, no crits, 94% damage. Buff Doge hits for 12, Cheems has 65 HP.
+        // 0.2: always an encounter, no crits, 94% damage. Buff Doge hits for 12, Cheems has 1 HP.
         rng.set(0.2);
         move("NORTH")
                 .andExpect(jsonPath("$.encounter.enemies[0].code").value("BUFF_DOGE"));
@@ -164,7 +168,7 @@ class EncounterApiTest {
         assertThat(status).isEqualTo("DEFEAT");
         assertThat(JsonPath.<String>read(lastBody, "$.log[-1]")).contains("faints and wakes up in Cheems' Doghouse");
         mvc.perform(get("/api/characters/{id}", id))
-                .andExpect(jsonPath("$.hp").value(65))
+                .andExpect(jsonPath("$.hp").value(81))
                 .andExpect(jsonPath("$.location.code").value("CHEEMS_DOGHOUSE"));
     }
 

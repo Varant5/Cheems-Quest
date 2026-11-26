@@ -36,13 +36,20 @@ public class WorldService {
                     Location location = byCode.get(entry.getKey());
                     GridPosition position = entry.getValue();
                     return new MapLocationView(location.getCode(), location.getName(),
-                            position.x(), position.y(), location.isSafe(), exits.get(location.getCode()));
+                            position.x(), position.y(), location.isSafe(), exits.get(location.getCode()),
+                            gateRequirements(location));
                 })
                 .sorted(Comparator.comparingInt(MapLocationView::y).thenComparingInt(MapLocationView::x))
                 .toList();
         int width = placed.stream().mapToInt(MapLocationView::x).max().orElse(0) + 1;
         int height = placed.stream().mapToInt(MapLocationView::y).max().orElse(0) + 1;
         return new WorldMapView(width, height, placed);
+    }
+
+    private static Map<Direction, List<String>> gateRequirements(Location location) {
+        Map<Direction, List<String>> gates = new EnumMap<>(Direction.class);
+        location.getGates().forEach((direction, gate) -> gates.put(direction, gate.requirements()));
+        return gates;
     }
 
     private static Map<Direction, String> exitCodes(Location location) {

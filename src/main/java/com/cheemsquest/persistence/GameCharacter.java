@@ -24,7 +24,9 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 // Not named "Character" to avoid clashing with java.lang.Character.
 @Entity
@@ -110,6 +112,10 @@ public class GameCharacter {
 
     public List<InventorySlot> getInventory() {
         return List.copyOf(inventory);
+    }
+
+    public Set<String> itemCodes() {
+        return inventory.stream().map(slot -> slot.getItem().getCode()).collect(Collectors.toSet());
     }
 
     public Optional<InventorySlot> inventorySlot(UUID slotId) {
