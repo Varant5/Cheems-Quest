@@ -91,6 +91,7 @@ class CharacterApiTest {
                 """)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("You enter Wow Forest."))
+                .andExpect(jsonPath("$.log").isEmpty())
                 .andExpect(jsonPath("$.location.code").value("WOW_FOREST"))
                 .andExpect(jsonPath("$.location.exits", contains("NORTH", "SOUTH", "WEST")));
 

@@ -9,6 +9,7 @@ import com.cheemsquest.persistence.Location;
 import com.cheemsquest.persistence.Player;
 import com.cheemsquest.persistence.PlayerRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,7 @@ public class CharacterService {
     private final GameCharacterRepository characters;
     private final ItemRepository items;
     private final EncounterService encounterService;
+    private final ApplicationEventPublisher events;
 
     @Transactional
     public CharacterView create(UUID playerId, String characterName) {
@@ -68,11 +70,13 @@ public class CharacterService {
             character.restoreHp();
             message.append(" Much nap. HP fully restored.");
         }
+        GameLog log = new GameLog();
+        events.publishEvent(new LocationEnteredEvent(characterId, destination.getCode(), log));
         Optional<EncounterView> encounter = encounterService.rollEncounter(character, destination);
         encounter.ifPresent(e -> message.append(' ').append(e.introduction()));
 
         return new MoveView(message.toString(), LocationView.from(destination),
-                character.getCurrentHp(), character.stats().maxHp(), encounter.orElse(null));
+                character.getCurrentHp(), character.stats().maxHp(), encounter.orElse(null), log.lines());
     }
 
     private GameCharacter load(UUID characterId) {

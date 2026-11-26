@@ -10,7 +10,7 @@ const KEY_DIRECTIONS = {
     ArrowRight: "EAST", d: "EAST"
 };
 const KEY_SKILLS = {1: "BONK", 2: "BITE", 3: "BONKING_SPIN"};
-const OBJECTIVE_VERBS = {DEFEAT_ENEMY: "Defeat"};
+const OBJECTIVE_VERBS = {DEFEAT_ENEMY: "Defeat", VISIT_LOCATION: "Visit"};
 const MAP_CELL = {width: 96, height: 50, gapX: 26, gapY: 22, padding: 4};
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -454,6 +454,10 @@ async function move(direction) {
         log(result.message, result.encounter ? "bad turn" : "system turn");
         if (!result.encounter) {
             log(result.location.description, "muted");
+        }
+        result.log.forEach((line) => log(line, lineTone(line)));
+        if (result.log.length) {
+            await refreshGame();
         }
         renderCharacter();
         setEncounter(result.encounter);

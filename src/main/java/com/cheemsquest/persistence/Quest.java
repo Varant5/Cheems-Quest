@@ -38,9 +38,13 @@ public class Quest {
     @Column(name = "objective_type", nullable = false, length = 32)
     private ObjectiveType objectiveType;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "target_enemy_code")
     private Enemy targetEnemy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "target_location_code")
+    private Location targetLocation;
 
     @Column(name = "required_amount", nullable = false)
     private int requiredAmount;
@@ -59,6 +63,7 @@ public class Quest {
     public QuestObjective objective() {
         String targetCode = switch (objectiveType) {
             case DEFEAT_ENEMY -> targetEnemy.getCode();
+            case VISIT_LOCATION -> targetLocation.getCode();
         };
         return new QuestObjective(objectiveType, targetCode, requiredAmount);
     }
@@ -66,6 +71,7 @@ public class Quest {
     public String targetName() {
         return switch (objectiveType) {
             case DEFEAT_ENEMY -> targetEnemy.getName();
+            case VISIT_LOCATION -> targetLocation.getName();
         };
     }
 }

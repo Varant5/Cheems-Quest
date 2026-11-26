@@ -113,8 +113,8 @@ class EnemyDefeatedEventTest {
                 "Cheems receives Stonks Helmet (EPIC).");
         assertThat(cheems().getExperience()).isEqualTo(120);
         assertThat(cheems().getInventory()).extracting(slot -> slot.getItem().getCode()).contains("STONKS_HELMET");
-        assertThat(questService.list(characterId)).singleElement()
-                .satisfies(quest -> assertThat(quest.status()).isEqualTo(QuestStatus.COMPLETED));
+        assertThat(questService.list(characterId)).filteredOn(quest -> quest.code().equals("KAREN_PROBLEMS"))
+                .singleElement().satisfies(quest -> assertThat(quest.status()).isEqualTo(QuestStatus.COMPLETED));
 
         GameLog fourth = defeat("KAREN_DOGE", "Wild Karen Doge", 20);
         assertThat(fourth.lines()).containsExactly("Cheems gains 20 EXP.", "Cheems finds 10 gold.");

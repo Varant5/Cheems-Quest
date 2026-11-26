@@ -27,6 +27,12 @@ class QuestListener {
         advance(event.characterId(), ObjectiveType.DEFEAT_ENEMY, event.enemyCode(), event.log());
     }
 
+    @EventListener
+    @Order(ListenerOrder.QUEST)
+    void onLocationEntered(LocationEnteredEvent event) {
+        advance(event.characterId(), ObjectiveType.VISIT_LOCATION, event.locationCode(), event.log());
+    }
+
     private void advance(UUID characterId, ObjectiveType type, String targetCode, GameLog log) {
         for (QuestProgress progress : progresses.findByCharacterIdAndStatus(characterId, QuestStatus.ACTIVE)) {
             Quest quest = progress.getQuest();
