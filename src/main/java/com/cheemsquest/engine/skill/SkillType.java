@@ -5,6 +5,7 @@ public enum SkillType {
     BITE(new Bite(), true),
     BONKING_SPIN(new BonkingSpin(), true),
     TOXIC_DROOL(new ToxicDrool(), false),
+    FROST_BREATH(new FrostBreath(), false),
     HEADBUTT(new Headbutt(), false);
 
     private final Skill skill;

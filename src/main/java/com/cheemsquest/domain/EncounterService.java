@@ -4,7 +4,7 @@ import com.cheemsquest.engine.combat.Battle;
 import com.cheemsquest.engine.combat.BattleStatus;
 import com.cheemsquest.engine.combat.EnemyAi;
 import com.cheemsquest.engine.combat.RoundResult;
-import com.cheemsquest.engine.combat.TacticalEnemyAi;
+import com.cheemsquest.engine.combat.PerEnemyAi;
 import com.cheemsquest.engine.item.ItemEffect;
 import com.cheemsquest.engine.model.Combatant;
 import com.cheemsquest.engine.model.StatusType;
@@ -16,7 +16,6 @@ import com.cheemsquest.persistence.Encounter;
 import com.cheemsquest.persistence.EncounterEnemy;
 import com.cheemsquest.persistence.EncounterRepository;
 import com.cheemsquest.persistence.Enemy;
-import com.cheemsquest.persistence.EnemySkill;
 import com.cheemsquest.persistence.GameCharacter;
 import com.cheemsquest.persistence.GameCharacterRepository;
 import com.cheemsquest.persistence.InventorySlot;
@@ -30,9 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.random.RandomGenerator;
@@ -199,20 +196,11 @@ public class EncounterService {
         return new Combatant(enemy.getName(), enemy.stats(), encounterEnemy.getCurrentHp());
     }
 
-    // Battle takes a single EnemyAi, so dispatch to each enemy's own skill table.
     private static EnemyAi aiFor(Encounter encounter, List<Combatant> foes) {
-        Map<Combatant, EnemyAi> ais = new IdentityHashMap<>();
+        PerEnemyAi ai = new PerEnemyAi();
         for (int i = 0; i < foes.size(); i++) {
-            ais.put(foes.get(i), skillAi(encounter.getEnemies().get(i).getEnemy()));
+            ai.assign(foes.get(i), encounter.getEnemies().get(i).getEnemy().ai());
         }
-        return (enemy, target, random) -> ais.get(enemy).chooseSkill(enemy, target, random);
-    }
-
-    private static EnemyAi skillAi(Enemy enemy) {
-        WeightedTable.Builder<Skill> skills = WeightedTable.builder();
-        for (EnemySkill enemySkill : enemy.getSkills()) {
-            skills.add(enemySkill.getSkill().skill(), enemySkill.getWeight());
-        }
-        return new TacticalEnemyAi(skills.build());
+        return ai;
     }
 }

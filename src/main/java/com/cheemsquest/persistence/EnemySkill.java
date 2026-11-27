@@ -20,4 +20,7 @@ public class EnemySkill {
 
     @Column(nullable = false)
     private int weight;
+
+    @Column(nullable = false)
+    private int phase;
 }

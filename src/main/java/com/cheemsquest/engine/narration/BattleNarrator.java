@@ -2,6 +2,7 @@ package com.cheemsquest.engine.narration;
 
 import com.cheemsquest.engine.combat.RoundResult;
 import com.cheemsquest.engine.model.BattleEvent;
+import com.cheemsquest.engine.model.PhaseShift;
 import com.cheemsquest.engine.model.StatusEffect;
 import com.cheemsquest.engine.model.StatusTick;
 import com.cheemsquest.engine.skill.Hit;
@@ -25,6 +26,7 @@ public final class BattleNarrator {
         return switch (event) {
             case SkillResult result -> narrateSkill(result);
             case StatusTick tick -> narrateTick(tick);
+            case PhaseShift shift -> List.of(shift.announcement());
             default -> throw new IllegalArgumentException("Unknown battle event " + event);
         };
     }

@@ -43,7 +43,7 @@ class QuestApiTest {
     void listsAvailableQuest() throws Exception {
         mvc.perform(get("/api/characters/{id}/quests", id))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(4))
+                .andExpect(jsonPath("$.length()").value(5))
                 .andExpect(jsonPath("$[0].code").value("KAREN_PROBLEMS"))
                 .andExpect(jsonPath("$[0].status").value("AVAILABLE"))
                 .andExpect(jsonPath("$[0].objectiveType").value("DEFEAT_ENEMY"))

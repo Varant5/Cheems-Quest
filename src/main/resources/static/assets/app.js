@@ -494,7 +494,7 @@ function lineTone(line) {
     if (/LEVEL UP| feels lucky/.test(line)) return "level";
     if (/ heals \d+ HP/.test(line)) return "good";
     if (/^Loot!| receives | finds \d+ gold/.test(line)) return "loot";
-    if (/faints|DEFEAT/.test(line)) return "bad";
+    if (/faints|DEFEAT|ENRAGED/.test(line)) return "bad";
     if (/ is poisoned| is stunned| poison damage| can.t move/.test(line)) return line.startsWith(name) ? "hurt" : "hit";
     if (line.replace(/^CRITICAL! /, "").startsWith(`${name} loses`)) return "hurt";
     if (/ loses \d+ HP| is down!/.test(line)) return "hit";

@@ -22,7 +22,7 @@ POST /api/characters/{id}/encounter/action  {"skill": "BONK"}
 ## Features
 
 - **Turn-based combat** with three skills, critical hits, misses, multi-enemy fights and status effects (poison, stun).
-- **Tactical enemy AI**: weighted skill tables per enemy, adjusted to the fight. Enemies do not re-poison a poisoned Cheems and go for a finishing bite when HP runs low.
+- **Tactical enemy AI**: weighted skill tables per enemy, adjusted to the fight. Enemies do not re-poison a poisoned Cheems and go for a finishing bite when HP runs low. Bosses switch to a new skill set when their HP drops below a threshold.
 - **World map** of eight locations in two regions, with random encounters, exits gated by level, quest or item, fog of war over unexplored places, and a safe home where Cheems naps to full HP.
 - **Progression**: experience, levels and stat growth.
 - **Items and equipment** in four slots, with rarities from COMMON to LEGENDARY.
@@ -192,7 +192,7 @@ The way back is always open.
 | Buff Doge | 120 | Buff Doge Tower | Buff Harness, Stonks Helmet, Legendary Bone |
 | Mountain Goat Doge | 55 | Bonk Pass, Echo Cave | Headlamp Hat, Spiky Collar |
 | Cave Bat Shibe | 42 | Echo Cave | Bat Fang Necklace, Headlamp Hat |
-| Abominable Snow Doge | 150 | Bonk Peak | Yeti Fur Coat, Frost Bone |
+| Abominable Snow Doge (boss) | 150 | Bonk Peak | Yeti Fur Coat, Frost Bone |
 
 | Quest | Objective | Requires | Reward |
 |---|---|---|---|
@@ -200,6 +200,7 @@ The way back is always open.
 | Never Skip Leg Day | Defeat Buff Doge | Karen Problems | 150 EXP, Doge Coin |
 | Much Mystery Smell | Visit Much Swamp | - | 25 EXP, Cheemsburger |
 | Manager Material | Find 2 Karen's Wigs | - | 80 EXP, Spiky Collar |
+| The Abominable Snow Doge | Defeat the boss on Bonk Peak | Never Skip Leg Day | 300 EXP, Snow Crown |
 
 ## Tech stack
 

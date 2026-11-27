@@ -5,7 +5,9 @@ import com.cheemsquest.engine.model.Combatant;
 import com.cheemsquest.engine.skill.Skill;
 
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.random.RandomGenerator;
 
@@ -16,6 +18,7 @@ public class Battle {
     private final EnemyAi enemyAi;
     private final RandomGenerator rng;
     private final List<BattleEvent> log = new ArrayList<>();
+    private final Map<Combatant, Integer> hpAtRoundStart = new IdentityHashMap<>();
     private BattleState state = new PlayerTurn();
 
     public Battle(Combatant player, List<Combatant> enemies, EnemyAi enemyAi, RandomGenerator rng) {
@@ -34,6 +37,8 @@ public class Battle {
     public RoundResult act(Skill skill, Combatant target) {
         Objects.requireNonNull(skill, "skill");
         int logSizeBefore = log.size();
+        hpAtRoundStart.clear();
+        enemies.forEach(enemy -> hpAtRoundStart.put(enemy, enemy.getHp()));
 
         state = state.onPlayerAction(this, skill, target);
         while (state.status() == BattleStatus.ENEMY_TURN) {
@@ -94,6 +99,10 @@ public class Battle {
 
     void record(BattleEvent event) {
         log.add(event);
+    }
+
+    int hpAtRoundStart(Combatant enemy) {
+        return hpAtRoundStart.getOrDefault(enemy, enemy.getHp());
     }
 
     EnemyAi enemyAi() {

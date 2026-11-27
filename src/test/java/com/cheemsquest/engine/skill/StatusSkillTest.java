@@ -74,6 +74,20 @@ class StatusSkillTest {
     }
 
     @Test
+    void frostBreathHitsHardAndOftenFreezes() {
+        Hit frozen = new FrostBreath().use(shibe, List.of(cheems), FixedRandom.of(0.5, 0.4)).hits().getFirst();
+
+        assertThat(frozen.damage()).isEqualTo(14);
+        assertThat(frozen.inflicted()).isEqualTo(StatusEffect.stun(1));
+
+        Combatant other = new Combatant("Cheems", new Stats(50, 10, 2));
+        shibe.bless();
+        Hit crit = new FrostBreath().use(shibe, List.of(other), FixedRandom.of(0.5, 0.6)).hits().getFirst();
+        assertThat(crit.outcome()).isEqualTo(HitOutcome.CRITICAL);
+        assertThat(crit.inflicted()).isNull();
+    }
+
+    @Test
     void onlyTheOriginalSkillsArePlayerSkills() {
         assertThat(SkillType.values()).filteredOn(SkillType::isPlayerSkill)
                 .containsExactly(SkillType.BONK, SkillType.BITE, SkillType.BONKING_SPIN);

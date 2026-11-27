@@ -1,9 +1,13 @@
 package com.cheemsquest.persistence;
 
+import com.cheemsquest.engine.combat.EnemyAi;
+import com.cheemsquest.engine.combat.PhasedEnemyAi;
+import com.cheemsquest.engine.combat.TacticalEnemyAi;
 import com.cheemsquest.engine.loot.GoldDrop;
 import com.cheemsquest.engine.loot.LootTable;
 import com.cheemsquest.engine.model.Stats;
 import com.cheemsquest.engine.random.WeightedTable;
+import com.cheemsquest.engine.skill.Skill;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -60,6 +64,11 @@ public class Enemy {
     private List<EnemySkill> skills = new ArrayList<>();
 
     @ElementCollection
+    @CollectionTable(name = "enemy_phase", joinColumns = @JoinColumn(name = "enemy_code"))
+    @OrderBy("phase")
+    private List<EnemyPhase> phases = new ArrayList<>();
+
+    @ElementCollection
     @CollectionTable(name = "enemy_loot", joinColumns = @JoinColumn(name = "enemy_code"))
     @OrderBy("weight DESC")
     private List<LootEntry> loot = new ArrayList<>();
@@ -70,6 +79,26 @@ public class Enemy {
 
     public Stats stats() {
         return new Stats(maxHp, attack, defense);
+    }
+
+    public EnemyAi ai() {
+        EnemyAi opening = phaseAi(1);
+        if (phases.isEmpty()) {
+            return opening;
+        }
+        List<PhasedEnemyAi.Phase> laterPhases = phases.stream()
+                .map(phase -> new PhasedEnemyAi.Phase(phase.getHpThreshold(), phase.getAnnouncement(),
+                        phaseAi(phase.getPhase())))
+                .toList();
+        return new PhasedEnemyAi(opening, laterPhases);
+    }
+
+    private EnemyAi phaseAi(int phase) {
+        WeightedTable.Builder<Skill> table = WeightedTable.builder();
+        skills.stream()
+                .filter(skill -> skill.getPhase() == phase)
+                .forEach(skill -> table.add(skill.getSkill().skill(), skill.getWeight()));
+        return new TacticalEnemyAi(table.build());
     }
 
     public LootTable<Item> lootTable() {

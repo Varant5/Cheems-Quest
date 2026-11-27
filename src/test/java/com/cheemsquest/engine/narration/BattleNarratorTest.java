@@ -3,6 +3,7 @@ package com.cheemsquest.engine.narration;
 import com.cheemsquest.engine.combat.BattleStatus;
 import com.cheemsquest.engine.combat.RoundResult;
 import com.cheemsquest.engine.model.Combatant;
+import com.cheemsquest.engine.model.PhaseShift;
 import com.cheemsquest.engine.model.Stats;
 import com.cheemsquest.engine.model.StatusEffect;
 import com.cheemsquest.engine.model.StatusTick;
@@ -105,6 +106,12 @@ class BattleNarratorTest {
                 "Soggy Shibe uses Headbutt!",
                 "Cheems loses 12 HP.",
                 "Cheems is stunned! Such dizzy.");
+    }
+
+    @Test
+    void narratesPhaseShiftsVerbatim() {
+        assertThat(BattleNarrator.narrate(new PhaseShift(enemy("Abominable Snow Doge", 10), "It is ENRAGED!")))
+                .containsExactly("It is ENRAGED!");
     }
 
     @Test

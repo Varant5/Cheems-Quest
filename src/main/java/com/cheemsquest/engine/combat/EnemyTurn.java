@@ -1,6 +1,7 @@
 package com.cheemsquest.engine.combat;
 
 import com.cheemsquest.engine.model.Combatant;
+import com.cheemsquest.engine.model.PhaseShift;
 import com.cheemsquest.engine.model.StatusTick;
 import com.cheemsquest.engine.skill.Skill;
 
@@ -19,7 +20,12 @@ record EnemyTurn() implements BattleState {
         for (Combatant enemy : battle.livingEnemies()) {
             List<StatusTick> ticks = enemy.startTurn();
             ticks.forEach(battle::record);
-            if (!enemy.isAlive() || ticks.stream().anyMatch(StatusTick::skipsTurn)) {
+            if (!enemy.isAlive()) {
+                continue;
+            }
+            battle.enemyAi().phaseShift(enemy, battle.hpAtRoundStart(enemy))
+                    .ifPresent(announcement -> battle.record(new PhaseShift(enemy, announcement)));
+            if (ticks.stream().anyMatch(StatusTick::skipsTurn)) {
                 continue;
             }
             Skill skill = battle.enemyAi().chooseSkill(enemy, player, battle.rng());
