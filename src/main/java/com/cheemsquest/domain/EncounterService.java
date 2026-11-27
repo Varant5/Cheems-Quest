@@ -7,6 +7,7 @@ import com.cheemsquest.engine.combat.RoundResult;
 import com.cheemsquest.engine.combat.WeightedEnemyAi;
 import com.cheemsquest.engine.item.ItemEffect;
 import com.cheemsquest.engine.model.Combatant;
+import com.cheemsquest.engine.model.StatusType;
 import com.cheemsquest.engine.narration.BattleNarrator;
 import com.cheemsquest.engine.random.WeightedTable;
 import com.cheemsquest.engine.skill.Skill;
@@ -35,6 +36,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.random.RandomGenerator;
+import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
@@ -82,7 +84,11 @@ public class EncounterService {
         if (item.getEffect() == ItemEffect.GUARANTEED_CRIT && encounter.isPlayerLucky()) {
             throw new GameRuleException("Already feeling lucky. Save the " + item.getName() + " for later.");
         }
-        character.removeItem(slot);
+        boolean stunned = encounter.statusesOf(Encounter.PLAYER).stream()
+                .anyMatch(effect -> effect.type() == StatusType.STUN);
+        if (!stunned) {
+            character.removeItem(slot);
+        }
         return playRound(character, encounter, itemSkill, null);
     }
 
@@ -92,16 +98,25 @@ public class EncounterService {
         if (encounter.isPlayerLucky()) {
             player.bless();
         }
-        List<Combatant> foes = encounter.getEnemies().stream().map(EncounterService::toCombatant).toList();
+        encounter.statusesOf(Encounter.PLAYER).forEach(player::afflict);
+        List<Combatant> foes = IntStream.range(0, encounter.getEnemies().size())
+                .mapToObj(i -> {
+                    Combatant foe = toCombatant(encounter.getEnemies().get(i));
+                    encounter.statusesOf(i).forEach(foe::afflict);
+                    return foe;
+                })
+                .toList();
         List<Integer> hpBefore = encounter.getEnemies().stream().map(EncounterEnemy::getCurrentHp).toList();
         Battle battle = new Battle(player, foes, aiFor(encounter, foes), rng);
 
         RoundResult round = runRound(battle, skill, foes, targetPosition);
 
         encounter.updatePlayerLuck(player.isLucky());
+        encounter.updateStatuses(Encounter.PLAYER, player.getStatuses());
         character.updateHp(player.getHp());
         for (int i = 0; i < foes.size(); i++) {
             encounter.updateEnemyHp(i, foes.get(i).getHp());
+            encounter.updateStatuses(i, foes.get(i).getStatuses());
         }
         encounter.updateStatus(round.status());
 

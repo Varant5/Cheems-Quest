@@ -786,3 +786,25 @@ kbd {
 .map-dialog-header h2 {
     margin: 0;
 }
+
+.statuses {
+    margin-left: 8px;
+}
+
+.status {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 0 5px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 400;
+    border: 1px solid currentColor;
+}
+
+.status.POISON {
+    color: var(--good);
+}
+
+.status.STUN {
+    color: var(--accent);
+}

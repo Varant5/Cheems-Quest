@@ -10,6 +10,7 @@ const KEY_DIRECTIONS = {
     ArrowRight: "EAST", d: "EAST"
 };
 const KEY_SKILLS = {1: "BONK", 2: "BITE", 3: "BONKING_SPIN"};
+const STATUS_ICONS = {POISON: {icon: "☠️", label: "Poisoned"}, STUN: {icon: "💫", label: "Stunned"}};
 const OBJECTIVE_VERBS = {DEFEAT_ENEMY: "Defeat", VISIT_LOCATION: "Visit", COLLECT_ITEM: "Find"};
 const MAP_CELL = {width: 96, height: 50, gapX: 26, gapY: 22, padding: 4, stub: 12};
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -456,6 +457,14 @@ function setEncounter(encounter) {
     }
 }
 
+function statusBadges(statuses) {
+    return statuses.map((status) => {
+        const {icon, label} = STATUS_ICONS[status.type];
+        const turns = status.turns === 1 ? "1 turn" : `${status.turns} turns`;
+        return el("span", {className: `status ${status.type}`, title: `${label} for ${turns}`, textContent: `${icon}${status.turns}`});
+    });
+}
+
 function renderEnemies() {
     $("#enemies").replaceChildren(...state.encounter.enemies.map((enemy) => {
         const down = enemy.hp <= 0;
@@ -472,7 +481,7 @@ function renderEnemies() {
                 }
             },
             el("div", {className: "row"},
-                el("strong", {textContent: enemy.name}),
+                el("strong", {textContent: enemy.name}, ...(down ? [] : statusBadges(enemy.statuses))),
                 el("span", {className: "muted", textContent: down ? "down" : `${enemy.hp} / ${enemy.maxHp} HP`})),
             bar);
         return el("li", {}, button);
@@ -486,6 +495,7 @@ function lineTone(line) {
     if (/ heals \d+ HP/.test(line)) return "good";
     if (/^Loot!| receives | finds \d+ gold/.test(line)) return "loot";
     if (/faints|DEFEAT/.test(line)) return "bad";
+    if (/ is poisoned| is stunned| poison damage| can.t move/.test(line)) return line.startsWith(name) ? "hurt" : "hit";
     if (line.replace(/^CRITICAL! /, "").startsWith(`${name} loses`)) return "hurt";
     if (/ loses \d+ HP| is down!/.test(line)) return "hit";
     if (/ gains \d+ EXP|Quest progress/.test(line)) return "system";
@@ -569,6 +579,7 @@ function renderCombatItems() {
         return;
     }
     $("#lucky").hidden = !state.encounter.lucky;
+    $("#player-statuses").replaceChildren(...statusBadges(state.encounter.playerStatuses));
     const items = combatItems();
     $("#combat-items").hidden = items.length === 0;
     $("#combat-items").replaceChildren(...items.map((item, index) => {

@@ -1,6 +1,8 @@
 package com.cheemsquest.domain;
 
 import com.cheemsquest.engine.combat.BattleStatus;
+import com.cheemsquest.engine.model.StatusEffect;
+import com.cheemsquest.engine.model.StatusType;
 import com.cheemsquest.persistence.Encounter;
 import com.cheemsquest.persistence.EncounterEnemy;
 
@@ -9,9 +11,17 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public record EncounterView(UUID id, BattleStatus status, List<EnemyView> enemies, boolean lucky) {
+public record EncounterView(UUID id, BattleStatus status, List<EnemyView> enemies, boolean lucky,
+                            List<StatusView> playerStatuses) {
 
-    public record EnemyView(int position, String code, String name, int hp, int maxHp) {
+    public record EnemyView(int position, String code, String name, int hp, int maxHp, List<StatusView> statuses) {
+    }
+
+    public record StatusView(StatusType type, int turns) {
+
+        static List<StatusView> of(List<StatusEffect> effects) {
+            return effects.stream().map(effect -> new StatusView(effect.type(), effect.turns())).toList();
+        }
     }
 
     static EncounterView from(Encounter encounter) {
@@ -20,10 +30,11 @@ public record EncounterView(UUID id, BattleStatus status, List<EnemyView> enemie
                 .mapToObj(i -> {
                     EncounterEnemy e = enemies.get(i);
                     return new EnemyView(i, e.getEnemy().getCode(), e.getEnemy().getName(),
-                            e.getCurrentHp(), e.getEnemy().getMaxHp());
+                            e.getCurrentHp(), e.getEnemy().getMaxHp(), StatusView.of(encounter.statusesOf(i)));
                 })
                 .toList();
-        return new EncounterView(encounter.getId(), encounter.getStatus(), views, encounter.isPlayerLucky());
+        return new EncounterView(encounter.getId(), encounter.getStatus(), views, encounter.isPlayerLucky(),
+                StatusView.of(encounter.statusesOf(Encounter.PLAYER)));
     }
 
     String enemyNames() {

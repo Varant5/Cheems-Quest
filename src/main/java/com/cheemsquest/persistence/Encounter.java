@@ -1,6 +1,7 @@
 package com.cheemsquest.persistence;
 
 import com.cheemsquest.engine.combat.BattleStatus;
+import com.cheemsquest.engine.model.StatusEffect;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -31,6 +32,8 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Encounter {
 
+    public static final int PLAYER = -1;
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -50,6 +53,11 @@ public class Encounter {
     @CollectionTable(name = "encounter_enemy", joinColumns = @JoinColumn(name = "encounter_id"))
     @OrderColumn(name = "position")
     private List<EncounterEnemy> enemies = new ArrayList<>();
+
+    @Getter(AccessLevel.NONE)
+    @ElementCollection
+    @CollectionTable(name = "encounter_status", joinColumns = @JoinColumn(name = "encounter_id"))
+    private List<EncounterStatus> statuses = new ArrayList<>();
 
     @Column(name = "player_lucky", nullable = false)
     private boolean playerLucky;
@@ -72,6 +80,18 @@ public class Encounter {
 
     public void updateEnemyHp(int position, int hp) {
         enemies.get(position).setCurrentHp(hp);
+    }
+
+    public List<StatusEffect> statusesOf(int combatant) {
+        return statuses.stream()
+                .filter(status -> status.getCombatant() == combatant)
+                .map(EncounterStatus::toEffect)
+                .toList();
+    }
+
+    public void updateStatuses(int combatant, List<StatusEffect> effects) {
+        statuses.removeIf(status -> status.getCombatant() == combatant);
+        effects.forEach(effect -> statuses.add(new EncounterStatus(combatant, effect)));
     }
 
     public void updatePlayerLuck(boolean lucky) {
