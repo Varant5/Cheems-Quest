@@ -133,6 +133,18 @@ class EncounterApiTest {
     }
 
     @Test
+    void cheemsCannotUseEnemySkills() throws Exception {
+        rng.set(0.5);
+        move("EAST");
+
+        act("TOXIC_DROOL")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.detail").value("Cheems doesn't know Toxic Drool. Much confuse."));
+        mvc.perform(get("/api/characters/{id}/encounter", id))
+                .andExpect(jsonPath("$.enemies[0].hp").value(35));
+    }
+
+    @Test
     void napInTheDoghouseRestoresHp() throws Exception {
         rng.set(0.5);
         move("EAST");

@@ -5,6 +5,7 @@ import com.cheemsquest.engine.combat.BattleStatus;
 import com.cheemsquest.engine.combat.EnemyAi;
 import com.cheemsquest.engine.combat.RoundResult;
 import com.cheemsquest.engine.combat.WeightedEnemyAi;
+import com.cheemsquest.engine.model.BattleEvent;
 import com.cheemsquest.engine.model.Combatant;
 import com.cheemsquest.engine.model.Stats;
 import com.cheemsquest.engine.narration.BattleNarrator;
@@ -13,7 +14,6 @@ import com.cheemsquest.engine.skill.Bite;
 import com.cheemsquest.engine.skill.Bonk;
 import com.cheemsquest.engine.skill.BonkingSpin;
 import com.cheemsquest.engine.skill.Skill;
-import com.cheemsquest.engine.skill.SkillResult;
 import com.cheemsquest.engine.skill.Targeting;
 
 import java.io.InputStream;
@@ -145,8 +145,8 @@ public final class ConsoleGame {
         }
     }
 
-    private void narrate(SkillResult result) {
-        List<String> lines = BattleNarrator.narrate(result);
+    private void narrate(BattleEvent event) {
+        List<String> lines = BattleNarrator.narrate(event);
         out.println(lines.getFirst());
         lines.stream().skip(1).forEach(line -> out.println("  " + line));
     }

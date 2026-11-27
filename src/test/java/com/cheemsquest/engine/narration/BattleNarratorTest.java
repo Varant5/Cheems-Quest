@@ -4,6 +4,9 @@ import com.cheemsquest.engine.combat.BattleStatus;
 import com.cheemsquest.engine.combat.RoundResult;
 import com.cheemsquest.engine.model.Combatant;
 import com.cheemsquest.engine.model.Stats;
+import com.cheemsquest.engine.model.StatusEffect;
+import com.cheemsquest.engine.model.StatusTick;
+import com.cheemsquest.engine.model.StatusType;
 import com.cheemsquest.engine.skill.Hit;
 import com.cheemsquest.engine.skill.HitOutcome;
 import com.cheemsquest.engine.skill.SkillResult;
@@ -86,5 +89,33 @@ class BattleNarratorTest {
                 "Wild Karen Doge loses 14 HP.",
                 "Wild Karen Doge uses Bite!",
                 "Cheems dodges. Such dodge.");
+    }
+
+    @Test
+    void narratesInflictedStatuses() {
+        Combatant shibe = enemy("Soggy Shibe", 28);
+
+        assertThat(BattleNarrator.narrate(new SkillResult("Toxic Drool", shibe,
+                List.of(new Hit(cheems, 5, HitOutcome.HIT, StatusEffect.poison(3, 3)))))).containsExactly(
+                "Soggy Shibe uses Toxic Drool!",
+                "Cheems loses 5 HP.",
+                "Cheems is poisoned for 3 turns! Much sick.");
+        assertThat(BattleNarrator.narrate(new SkillResult("Headbutt", shibe,
+                List.of(new Hit(cheems, 12, HitOutcome.HIT, StatusEffect.stun(1)))))).containsExactly(
+                "Soggy Shibe uses Headbutt!",
+                "Cheems loses 12 HP.",
+                "Cheems is stunned! Such dizzy.");
+    }
+
+    @Test
+    void narratesStatusTicks() {
+        Combatant karen = enemy("Wild Karen Doge", 0);
+
+        assertThat(BattleNarrator.narrate(new StatusTick(cheems, StatusType.POISON, 3)))
+                .containsExactly("Cheems takes 3 poison damage.");
+        assertThat(BattleNarrator.narrate(new StatusTick(karen, StatusType.POISON, 2)))
+                .containsExactly("Wild Karen Doge takes 2 poison damage.", "Wild Karen Doge is down!");
+        assertThat(BattleNarrator.narrate(new StatusTick(cheems, StatusType.STUN, 0)))
+                .containsExactly("Cheems is stunned and can't move.");
     }
 }

@@ -52,7 +52,7 @@ class WeightedEnemyAiTest {
 
         RoundResult round = battle.act(bonk, karen);
 
-        assertThat(round.actions().get(1).skillName()).isEqualTo("Bite");
+        assertThat(round.skillResults().get(1).skillName()).isEqualTo("Bite");
         assertThat(cheems.getHp()).isEqualTo(50);
     }
 }

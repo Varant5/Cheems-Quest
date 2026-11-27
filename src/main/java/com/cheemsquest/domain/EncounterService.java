@@ -57,6 +57,10 @@ public class EncounterService {
     public ActionView act(UUID characterId, SkillType skillType, Integer targetPosition) {
         GameCharacter character = loadCharacter(characterId);
         Encounter encounter = loadActive(characterId);
+        if (!skillType.isPlayerSkill()) {
+            throw new GameRuleException(character.getName() + " doesn't know " + skillType.skill().name()
+                    + ". Much confuse.");
+        }
         return playRound(character, encounter, skillType.skill(), targetPosition);
     }
 

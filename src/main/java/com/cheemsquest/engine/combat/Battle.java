@@ -1,8 +1,8 @@
 package com.cheemsquest.engine.combat;
 
+import com.cheemsquest.engine.model.BattleEvent;
 import com.cheemsquest.engine.model.Combatant;
 import com.cheemsquest.engine.skill.Skill;
-import com.cheemsquest.engine.skill.SkillResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +15,7 @@ public class Battle {
     private final List<Combatant> enemies;
     private final EnemyAi enemyAi;
     private final RandomGenerator rng;
-    private final List<SkillResult> log = new ArrayList<>();
+    private final List<BattleEvent> log = new ArrayList<>();
     private BattleState state = new PlayerTurn();
 
     public Battle(Combatant player, List<Combatant> enemies, EnemyAi enemyAi, RandomGenerator rng) {
@@ -65,7 +65,7 @@ public class Battle {
         return enemies;
     }
 
-    public List<SkillResult> getLog() {
+    public List<BattleEvent> getLog() {
         return List.copyOf(log);
     }
 
@@ -92,8 +92,8 @@ public class Battle {
         };
     }
 
-    void record(SkillResult result) {
-        log.add(result);
+    void record(BattleEvent event) {
+        log.add(event);
     }
 
     EnemyAi enemyAi() {

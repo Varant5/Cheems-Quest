@@ -7,7 +7,8 @@ import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.PositiveOrZero;
 
 public record ActionRequest(
-        @Schema(description = "Skill to use. Send either `skill` or `item`.", example = "BONK")
+        @Schema(description = "Skill to use. Send either `skill` or `item`.", example = "BONK",
+                allowableValues = {"BONK", "BITE", "BONKING_SPIN"})
         SkillType skill,
 
         @Schema(description = "Code of a consumable from the inventory to use instead of a skill.",
