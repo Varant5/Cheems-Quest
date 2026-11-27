@@ -21,14 +21,15 @@ class WeightedEnemyAiTest {
     private final Skill bite = new Bite();
     private final Skill spin = new BonkingSpin();
     private final Combatant karen = new Combatant("Karen Doge", new Stats(30, 10, 0));
+    private final Combatant cheems = new Combatant("Cheems", new Stats(50, 20, 2));
 
     @Test
     void uniformAiSpreadsRollsEvenlyAcrossSkills() {
         EnemyAi ai = WeightedEnemyAi.uniform(bonk, bite, spin);
 
-        assertThat(ai.chooseSkill(karen, new ConstantRandom(0.0))).isSameAs(bonk);
-        assertThat(ai.chooseSkill(karen, new ConstantRandom(0.5))).isSameAs(bite);
-        assertThat(ai.chooseSkill(karen, new ConstantRandom(0.9))).isSameAs(spin);
+        assertThat(ai.chooseSkill(karen, cheems, new ConstantRandom(0.0))).isSameAs(bonk);
+        assertThat(ai.chooseSkill(karen, cheems, new ConstantRandom(0.5))).isSameAs(bite);
+        assertThat(ai.chooseSkill(karen, cheems, new ConstantRandom(0.9))).isSameAs(spin);
     }
 
     @Test
@@ -38,13 +39,12 @@ class WeightedEnemyAiTest {
                 .add(bite, 1)
                 .build());
 
-        assertThat(ai.chooseSkill(karen, new ConstantRandom(0.89))).isSameAs(bonk);
-        assertThat(ai.chooseSkill(karen, new ConstantRandom(0.9))).isSameAs(bite);
+        assertThat(ai.chooseSkill(karen, cheems, new ConstantRandom(0.89))).isSameAs(bonk);
+        assertThat(ai.chooseSkill(karen, cheems, new ConstantRandom(0.9))).isSameAs(bite);
     }
 
     @Test
     void battleUsesSkillChosenByAi() {
-        Combatant cheems = new Combatant("Cheems", new Stats(50, 20, 2));
         Combatant karen = new Combatant("Karen Doge", new Stats(100, 10, 0));
         EnemyAi alwaysBite = WeightedEnemyAi.uniform(bite);
         // Cheems Bonk: no crit, neutral roll. Karen: AI roll, then Bite misses.

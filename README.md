@@ -21,8 +21,8 @@ POST /api/characters/{id}/encounter/action  {"skill": "BONK"}
 
 ## Features
 
-- **Turn-based combat** with three skills, critical hits, misses and multi-enemy fights.
-- **Enemy AI** choosing attacks from weighted tables defined per enemy.
+- **Turn-based combat** with three skills, critical hits, misses, multi-enemy fights and status effects (poison, stun).
+- **Tactical enemy AI**: weighted skill tables per enemy, adjusted to the fight. Enemies do not re-poison a poisoned Cheems and go for a finishing bite when HP runs low.
 - **World map** of eight locations in two regions, with random encounters, exits gated by level, quest or item, fog of war over unexplored places, and a safe home where Cheems naps to full HP.
 - **Progression**: experience, levels and stat growth.
 - **Items and equipment** in four slots, with rarities from COMMON to LEGENDARY.

@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class BattleTest {
 
     private static final Skill BONK = new Bonk();
-    private static final EnemyAi ALWAYS_BONK = (enemy, rng) -> BONK;
+    private static final EnemyAi ALWAYS_BONK = (enemy, target, rng) -> BONK;
 
     private final Combatant cheems = new Combatant("Cheems", new Stats(50, 20, 2));
 

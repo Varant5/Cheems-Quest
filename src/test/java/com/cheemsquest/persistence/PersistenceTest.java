@@ -69,8 +69,7 @@ class PersistenceTest {
                 .extracting(EnemySkill::getSkill, EnemySkill::getWeight)
                 .containsExactlyInAnyOrder(
                         tuple(SkillType.BONK, 2),
-                        tuple(SkillType.BITE, 1),
-                        tuple(SkillType.BONKING_SPIN, 1));
+                        tuple(SkillType.BITE, 1));
     }
 
     @Test

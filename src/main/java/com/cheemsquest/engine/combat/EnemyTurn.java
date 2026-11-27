@@ -22,7 +22,7 @@ record EnemyTurn() implements BattleState {
             if (!enemy.isAlive() || ticks.stream().anyMatch(StatusTick::skipsTurn)) {
                 continue;
             }
-            Skill skill = battle.enemyAi().chooseSkill(enemy, battle.rng());
+            Skill skill = battle.enemyAi().chooseSkill(enemy, player, battle.rng());
             battle.record(skill.use(enemy, List.of(player), battle.rng()));
             if (!player.isAlive()) {
                 return new Defeat();

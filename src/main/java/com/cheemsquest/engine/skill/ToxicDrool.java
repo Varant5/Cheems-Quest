@@ -2,8 +2,10 @@ package com.cheemsquest.engine.skill;
 
 import com.cheemsquest.engine.model.Combatant;
 import com.cheemsquest.engine.model.StatusEffect;
+import com.cheemsquest.engine.model.StatusType;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.random.RandomGenerator;
 
 public class ToxicDrool implements Skill {
@@ -20,6 +22,11 @@ public class ToxicDrool implements Skill {
     @Override
     public Targeting targeting() {
         return Targeting.SINGLE;
+    }
+
+    @Override
+    public Optional<StatusType> inflicts() {
+        return Optional.of(StatusType.POISON);
     }
 
     @Override

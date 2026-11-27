@@ -4,7 +4,7 @@ import com.cheemsquest.engine.combat.Battle;
 import com.cheemsquest.engine.combat.BattleStatus;
 import com.cheemsquest.engine.combat.EnemyAi;
 import com.cheemsquest.engine.combat.RoundResult;
-import com.cheemsquest.engine.combat.WeightedEnemyAi;
+import com.cheemsquest.engine.combat.TacticalEnemyAi;
 import com.cheemsquest.engine.item.ItemEffect;
 import com.cheemsquest.engine.model.Combatant;
 import com.cheemsquest.engine.model.StatusType;
@@ -205,7 +205,7 @@ public class EncounterService {
         for (int i = 0; i < foes.size(); i++) {
             ais.put(foes.get(i), skillAi(encounter.getEnemies().get(i).getEnemy()));
         }
-        return (enemy, random) -> ais.get(enemy).chooseSkill(enemy, random);
+        return (enemy, target, random) -> ais.get(enemy).chooseSkill(enemy, target, random);
     }
 
     private static EnemyAi skillAi(Enemy enemy) {
@@ -213,6 +213,6 @@ public class EncounterService {
         for (EnemySkill enemySkill : enemy.getSkills()) {
             skills.add(enemySkill.getSkill().skill(), enemySkill.getWeight());
         }
-        return new WeightedEnemyAi(skills.build());
+        return new TacticalEnemyAi(skills.build());
     }
 }

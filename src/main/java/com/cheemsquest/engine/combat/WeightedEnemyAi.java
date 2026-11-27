@@ -21,7 +21,7 @@ public final class WeightedEnemyAi implements EnemyAi {
     }
 
     @Override
-    public Skill chooseSkill(Combatant enemy, RandomGenerator rng) {
+    public Skill chooseSkill(Combatant enemy, Combatant target, RandomGenerator rng) {
         return skills.pick(rng);
     }
 }

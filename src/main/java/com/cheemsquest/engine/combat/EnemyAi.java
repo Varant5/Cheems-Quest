@@ -8,5 +8,5 @@ import java.util.random.RandomGenerator;
 @FunctionalInterface
 public interface EnemyAi {
 
-    Skill chooseSkill(Combatant enemy, RandomGenerator rng);
+    Skill chooseSkill(Combatant enemy, Combatant target, RandomGenerator rng);
 }

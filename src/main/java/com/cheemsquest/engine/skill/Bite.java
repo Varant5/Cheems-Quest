@@ -21,6 +21,11 @@ public class Bite implements Skill {
     }
 
     @Override
+    public boolean finisher() {
+        return true;
+    }
+
+    @Override
     public SkillResult use(Combatant user, List<Combatant> targets, RandomGenerator rng) {
         targeting().validate(targets);
         Combatant target = targets.getFirst();
